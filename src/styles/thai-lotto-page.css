@@ -1,0 +1,85 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+  }
+  
+  /* Header styles */
+  header {
+    display: flex;
+    justify-content: space-between;
+    padding: 16px;
+    border-bottom: 1px solid #ccc;
+    position: fixed;      /* Fix the header to the top */
+    top: 0;               /* Stick it to the top */
+    left: 0;              /* Align it to the left */
+    width: 100%;          /* Full width */
+    background-color: #fff; /* Optional: to prevent overlap with background */
+    z-index: 10;          /* Optional: to ensure it stays on top of other content */
+  
+  }
+  
+  header button {
+    padding: 8px 16px;
+    color: white;
+    background-color: #3b82f6;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  header button:hover {
+    background-color: #2563eb;
+  }
+  
+  /* Main Section */
+  main {
+    display: flex; 
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+
+
+  }
+  .box-list {
+    display: flex; 
+    align-items: center;
+    margin-top: 80px;
+    margin-bottom: 80px;
+    background-color: #ffffff;
+  }
+  
+  main h4 {
+    text-align: center;
+    font-weight: bold;
+  }
+
+/* Footer styles */
+.th-page-footer {
+    display: flex;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    padding: 4px;
+    border-top: 1px solid #ccc;
+    position: fixed;       /* Fix the footer to the bottom */
+    bottom: 0;             /* Stick it to the bottom */
+    left: 0;               /* Align it to the left */
+    width: 100%;           /* Full width */
+    background-color: #fff; /* Optional: to prevent overlap with background */
+    z-index: 10;    
+
+  }
+  
+.thal-lotto-button-footer {
+    width: 100%;
+    padding: 12px 2px;
+    color: white;
+    background-color: #2563eb;
+    border-radius: 2px;
+    cursor: pointer;
+    text-align: center;
+    justify-content: center;  
+    align-items: center; 
+  }
+  
+.thal-lotto-button-footer:hover {
+    background-color: #2563eb;
+  }

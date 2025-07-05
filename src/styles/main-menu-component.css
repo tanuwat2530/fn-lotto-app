@@ -1,0 +1,46 @@
+/* Center the icon menu on the page */
+.icon-menu-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+  }
+  
+  /* Grid layout for 2 columns & 6 rows */
+  .icon-menu-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    padding: 16px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Icon button styling */
+  .icon-menu-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+  }
+  
+  .icon-menu-button:hover {
+    background-color: #f3f4f6;
+  }
+  
+  /* Icon color */
+  .icon-menu-button svg {
+    color: #3b82f6;
+  }
+  
+  /* Icon text */
+  .icon-menu-text {
+    margin-top: 8px;
+    font-size: 14px;
+  }
+  
