@@ -99,14 +99,14 @@ const SignUp = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [identity, setIdentity] = useState(''); // Corresponds to the email/identity field
-
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent default form submission behavior
     if(username != "" && password != ""){
     // --- API Call ---
     try {
-      const response = await fetch('http://localhost:3003/bff-lotto-app/register', {
+      const response = await fetch(`${apiUrl}/bff-lotto-app/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -121,7 +121,6 @@ const SignUp = () => {
       // The API seems to return a non-JSON success message, so we handle it as text.
       const responseData = await response.text();
       const responseJson = JSON.parse(responseData);
-
       if (!response.ok) {
         // If the response is not OK, try to parse error as JSON, otherwise use the text.
         try {
@@ -131,10 +130,12 @@ const SignUp = () => {
             throw new Error(responseData || `HTTP error! status: ${response.status}`);
         }
       }
-        if(responseJson.code === '200'){
+     
+        if(responseJson.code === '200' ){
         alert("ลงทะเบียนสำเร็จ")
         router.push("/signin")
         }
+    
 
     } catch (err) {
       // Set the error message to be displayed to the user

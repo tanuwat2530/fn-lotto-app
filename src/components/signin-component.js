@@ -22,6 +22,7 @@ const Signin = () => {
     const [password, setPassword] = useState('');
     // A ref to hold the canvas element for the three.js renderer.
     const canvasRef = useRef(null);
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
     // useEffect hook to set up and run the three.js animation.
     // The empty dependency array [] ensures this runs only once when the component mounts.
@@ -119,7 +120,7 @@ const handleSubmit = async (e) => {
    
     // --- API Call ---
     try {
-      const response = await fetch('http://localhost:3003/bff-lotto-app/login', {
+      const response = await fetch(`${apiUrl}/bff-lotto-app/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -133,9 +134,7 @@ const handleSubmit = async (e) => {
 
       // The API seems to return a non-JSON success message, so we handle it as text.
     const responseData = await response.text();
-    const responseJson = JSON.parse(responseData);
-   
-      if (!response.ok) {
+ if (!response.ok) {
         // If the response is not OK, try to parse error as JSON, otherwise use the text.
         try {
             const errorJson = JSON.parse(responseData);
@@ -144,6 +143,8 @@ const handleSubmit = async (e) => {
             throw new Error(responseData || `HTTP error! status: ${response.status}`);
         }
       }
+       
+    const responseJson = JSON.parse(responseData);
     
    if(responseJson.code === '200'){
     // 1. Check if a session ID already exists in sessionStorage
