@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+import { useRouter } from 'next/navigation';
+import { useState} from 'react';
 // Using a standard <a> tag instead of Next.js Link for compatibility.
 
 /**
@@ -13,6 +15,11 @@ import * as THREE from 'three';
  * hooks (useRef, useEffect) to interact with the browser's DOM for the animation.
  */
 const Signin = () => {
+
+    const router = useRouter();
+         // State hooks to store form input values
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
     // A ref to hold the canvas element for the three.js renderer.
     const canvasRef = useRef(null);
 
@@ -106,6 +113,69 @@ const Signin = () => {
         }
     }, []);
 
+const handleSubmit = async (e) => {
+   
+    e.preventDefault(); // Prevent default form submission behavior
+   
+    // --- API Call ---
+    try {
+      const response = await fetch('http://localhost:3003/bff-lotto-app/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: username,
+          password: password,
+
+        }),
+      });
+
+      // The API seems to return a non-JSON success message, so we handle it as text.
+    const responseData = await response.text();
+    const responseJson = JSON.parse(responseData);
+   
+      if (!response.ok) {
+        // If the response is not OK, try to parse error as JSON, otherwise use the text.
+        try {
+            const errorJson = JSON.parse(responseData);
+            throw new Error(errorJson.message || `HTTP error! status: ${response.status}`);
+        } catch (jsonError) {
+            throw new Error(responseData || `HTTP error! status: ${response.status}`);
+        }
+      }
+    
+   if(responseJson.code === '200'){
+    // 1. Check if a session ID already exists in sessionStorage
+    let currentSessionId = sessionStorage.getItem("browser_session_id");
+    // 2. If no ID exists, create a new one
+    if (!currentSessionId) {
+      // Use crypto.randomUUID() for a cryptographically strong, unique ID
+      currentSessionId = crypto.randomUUID();
+      // Store the new ID in sessionStorage
+      sessionStorage.setItem("browser_session_id", currentSessionId);
+    }
+    sessionStorage.setItem("username",responseJson.message['username']);
+    sessionStorage.setItem("identity",responseJson.message['identity']);
+    sessionStorage.setItem("id", responseJson.message['id']);
+    sessionStorage.setItem("bank_account_number", responseJson.message['bank_account_number']);
+    sessionStorage.setItem("bank_account_owner", responseJson.message['bank_account_owner']);
+    sessionStorage.setItem("bank_provider_id", responseJson.message['bank_provider_id']);
+
+    router.push("/thai-lotto")
+   }else{
+    alert("บัญชีผู้ใช้งาน หรือ รหัสผ่าน ไม่ถูกต้อง")
+   }
+    } catch (err) {
+      // Set the error message to be displayed to the user
+       alert("ผิดพลาด กรุณาลองอีกครั้ง")
+      console.error("Login failed:", err);
+    } 
+
+
+  };
+
+
     return (
         <div className="bg-gray-900 text-white font-kanit">
             {/* Global styles for the page and form container */}
@@ -140,7 +210,7 @@ const Signin = () => {
                         <div className="hidden md:block text-center md:text-left">
                             <h1 className="text-5xl lg:text-6xl font-bold leading-tight mb-4">ยินดีต้อนรับกลับมา</h1>
                             <p className="text-lg text-gray-300">
-                                เข้าสู่ระบบเพื่อเชื่อมต่อกับชุมชนของเราอีกครั้ง
+                                เข้าสู่ระบบเพื่อเชื่อมต่อกับเราอีกครั้ง
                             </p>
                         </div>
 
@@ -152,14 +222,18 @@ const Signin = () => {
                                 <form action="#" method="POST">
                                     <div className="space-y-5">
                                         <div>
-                                            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">อีเมล</label>
-                                            <input type="email" id="email" name="email"
+                                            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">บัญชีผู้ใช้งาน</label>
+                                            <input type="text" id="username" name="usename"
+                                            required
+                                             onChange={(e) => setUsername(e.target.value)}
                                                 className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-300"
-                                                placeholder="you@example.com" />
+                                                placeholder="" />
                                         </div>
                                         <div>
                                             <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">รหัสผ่าน</label>
                                             <input type="password" id="password" name="password"
+                                            required
+                                             onChange={(e) => setPassword(e.target.value)}
                                                 className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-300"
                                                 placeholder="••••••••" />
                                         </div>
@@ -167,6 +241,7 @@ const Signin = () => {
 
                                     <div className="mt-8">
                                         <button type="submit"
+                                        onClick={handleSubmit}
                                             className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
                                             เข้าสู่ระบบ
                                         </button>

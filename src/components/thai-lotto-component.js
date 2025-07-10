@@ -1,6 +1,57 @@
 import React, { useState, useEffect } from "react";
+
+import { useRouter } from 'next/navigation';
 import { Home, User, Settings, Bell, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, CheckCircle, Receipt } from "lucide-react";
 
+
+
+	
+const ThaiLotto = () =>{
+
+      const router = useRouter();
+       // --- Configuration ---
+  const ICONS = [
+    { name: "3 ตัวบน", icon: Home, digits: 3 },
+    { name: "3 ตัวล่าง", icon: User, digits: 3 },
+    { name: "2 ตัวบน", icon: Settings, digits: 2 },
+    { name: "2 ตัวล่าง", icon: Bell, digits: 2 },
+  ];
+
+  const REWARD_RATIOS = [500, 400, 300, 200];
+
+  // --- State Management ---
+  const [currentCredit, setCurrentCredit] = useState(0);
+  const [selectedTypeIndex, setSelectedTypeIndex] = useState(0);
+  const [digit1, setDigit1] = useState("");
+  const [digit2, setDigit2] = useState("");
+  const [digit3, setDigit3] = useState("");
+  const [payCredit, setPayCredit] = useState(0);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [bets, setBets] = useState([]); // State to hold the history of bets
+
+  // --- Derived State ---
+  const selectedType = ICONS[selectedTypeIndex];
+  const isTwoDigitMode = selectedType.digits === 2;
+  const totalReward = payCredit * REWARD_RATIOS[selectedTypeIndex];
+
+    
+  useEffect(() => {
+      const currentSessionId = sessionStorage.getItem("browser_session_id");
+      const id = sessionStorage.getItem("id");
+      const usename = sessionStorage.getItem("usename");
+      const bank_account_number = sessionStorage.getItem("bank_account_number");
+      const bank_account_owner = sessionStorage.getItem("bank_account_owner");
+      const bank_provider_id = sessionStorage.getItem("bank_provider_id");
+      const identity = sessionStorage.getItem("identity");
+
+        if(currentSessionId === null || id === null)
+        {
+              router.push("/signin")
+        } 
+        setCurrentCredit(0)
+        
+        
+   }, []);
 // --- Bet Item Component (Adapted from MyLottoOrder) ---
 // This component displays a single past bet in the history list.
 const BetItem = ({ bet }) => {
@@ -41,32 +92,7 @@ const BetHistory = ({ bets }) => {
   );
 };
 
-
-export default function ThaiLottoPage() {
-  // --- Configuration ---
-  const ICONS = [
-    { name: "3 ตัวบน", icon: Home, digits: 3 },
-    { name: "3 ตัวล่าง", icon: User, digits: 3 },
-    { name: "2 ตัวบน", icon: Settings, digits: 2 },
-    { name: "2 ตัวล่าง", icon: Bell, digits: 2 },
-  ];
-
-  const REWARD_RATIOS = [500, 400, 300, 200];
-
-  // --- State Management ---
-  const [currentCredit, setCurrentCredit] = useState(1000);
-  const [selectedTypeIndex, setSelectedTypeIndex] = useState(0);
-  const [digit1, setDigit1] = useState("");
-  const [digit2, setDigit2] = useState("");
-  const [digit3, setDigit3] = useState("");
-  const [payCredit, setPayCredit] = useState(0);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [bets, setBets] = useState([]); // State to hold the history of bets
-
-  // --- Derived State ---
-  const selectedType = ICONS[selectedTypeIndex];
-  const isTwoDigitMode = selectedType.digits === 2;
-  const totalReward = payCredit * REWARD_RATIOS[selectedTypeIndex];
+ 
 
   // --- Event Handlers ---
   const handleTypeSelect = (index) => {
@@ -242,3 +268,4 @@ export default function ThaiLottoPage() {
       </div>
   );
 }
+export default ThaiLotto;

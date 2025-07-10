@@ -1,7 +1,7 @@
 import Signin from "../../components/signin-component";
 import Head from 'next/head';
 
-export default function HomePage() {
+export default function SigninPage() {
   return (
     <>
       <Head>

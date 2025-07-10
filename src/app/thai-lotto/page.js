@@ -2,18 +2,18 @@
 
 import { useRouter } from "next/navigation";
 import React from 'react';
-import InputLotto from "../../components/thai-lotto-component"
+import ThaiLotto from "../../components/thai-lotto-component"
 
 import '../../styles/thai-lotto-page.css';  // Import the CSS file
 
-export default function ThaiLotto() {
+export default function ThaiLottoPage() {
   const router = useRouter();
   return (
     
       <div>
     
       <main>
-          <InputLotto/>
+          <ThaiLotto/>
          
       </main>
 

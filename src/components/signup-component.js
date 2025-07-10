@@ -1,10 +1,13 @@
 "use client"; // Add this directive at the top of the file
 import React from 'react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef ,useState} from 'react';
+import { useRouter } from 'next/navigation';
+
 import * as THREE from 'three';
 
 const SignUp = () => {
     const canvasRef = useRef(null);
+
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -89,6 +92,61 @@ const SignUp = () => {
         }
     }, []);
 
+
+    
+ const router = useRouter();
+     // State hooks to store form input values
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [identity, setIdentity] = useState(''); // Corresponds to the email/identity field
+
+
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // Prevent default form submission behavior
+    if(username != "" && password != ""){
+    // --- API Call ---
+    try {
+      const response = await fetch('http://localhost:3003/bff-lotto-app/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: username,
+          password: password,
+          identity: identity,
+        }),
+      });
+
+      // The API seems to return a non-JSON success message, so we handle it as text.
+      const responseData = await response.text();
+      const responseJson = JSON.parse(responseData);
+
+      if (!response.ok) {
+        // If the response is not OK, try to parse error as JSON, otherwise use the text.
+        try {
+            const errorJson = JSON.parse(responseData);
+            throw new Error(errorJson.message || `HTTP error! status: ${response.status}`);
+        } catch (jsonError) {
+            throw new Error(responseData || `HTTP error! status: ${response.status}`);
+        }
+      }
+        if(responseJson.code === '200'){
+        alert("ลงทะเบียนสำเร็จ")
+        router.push("/signin")
+        }
+
+    } catch (err) {
+      // Set the error message to be displayed to the user
+      console.error("catch case : Registration failed:", err);
+    } 
+    }else
+    {
+         alert("กรุณากรอกข้อมูลให้ครบ และลองอีกครั้ง")
+    }
+
+  };
+
     return (
         <div className="bg-gray-900 text-white font-kanit">
             <style jsx global>{`
@@ -122,7 +180,7 @@ const SignUp = () => {
                         <div className="hidden md:block text-center md:text-left">
                             <h1 className="text-5xl lg:text-6xl font-bold leading-tight mb-4">เข้าร่วมกับเรา</h1>
                             <p className="text-lg text-gray-300">
-                                ค้นพบประสบการณ์ใหม่และเชื่อมต่อกับชุมชนของเราได้แล้ววันนี้
+                                ค้นพบประสบการณ์ใหม่ เชื่อมต่อกับเราได้แล้ววันนี้
                             </p>
                         </div>
 
@@ -136,25 +194,33 @@ const SignUp = () => {
                                         <div>
                                             <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-1">ชื่อผู้ใช้</label>
                                             <input type="text" id="username" name="username"
+                                            required
+                                             onChange={(e) => setUsername(e.target.value)}
                                                 className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-300"
-                                                placeholder="ตัวอย่าง: user123" />
+                                                placeholder="ตัวอย่าง: user123" />  
                                         </div>
-                                        <div>
-                                            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">อีเมล หรือ เบอร์โทรศัพท์</label>
-                                            <input type="email" id="email" name="email"
-                                                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-300"
-                                                placeholder="you@example.com" />
-                                        </div>
-                                        <div>
+                                         <div>
                                             <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">รหัสผ่าน</label>
                                             <input type="password" id="password" name="password"
+                                            required
+                                             onChange={(e) => setPassword(e.target.value)}
                                                 className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-300"
                                                 placeholder="••••••••" />
                                         </div>
+                                        <div>
+                                            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">อีเมล หรือ เบอร์โทรศัพท์</label>
+                                            <input type="text" id="identity" name="identity"
+                                            required
+                                             onChange={(e) => setIdentity(e.target.value)}
+                                                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-300"
+                                                placeholder="you@example.com" />
+                                        </div>
+                                       
                                     </div>
 
                                     <div className="mt-8">
                                         <button type="submit"
+                                            onClick={handleSubmit}
                                             className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
                                             สมัครสมาชิก
                                         </button>

@@ -1,7 +1,7 @@
 import SignUp from "../../components/signup-component"
 import Head from 'next/head';
 
-export default function HomePage() {
+export default function SignupPage() {
   return (
     <>
       <Head>
