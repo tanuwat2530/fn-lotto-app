@@ -1,0 +1,28 @@
+# Dependency directories
+node_modules
+
+# Production build folder (it's created inside the container)
+build
+
+# Git files
+.git
+.gitignore
+
+# Docker files
+Dockerfile
+.dockerignore
+
+# Environment files (these should be managed by Cloud Run's secrets)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+
+# lock file
+*.lock
+
+# Optional: Test files
+src/**/*.test.js
+src/**/*.spec.js
