@@ -1,7 +1,7 @@
 # --- STAGE 1: Build the React Application ---
 # Use the official Node.js 20 image as the base for building.
 # The 'alpine' version is lightweight.
-FROM node:20-alpine AS build
+FROM node:20.19.3-slim
 
 # Set the working directory inside the container
 WORKDIR /app
