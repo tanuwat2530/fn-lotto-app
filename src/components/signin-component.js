@@ -4,7 +4,8 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useRouter } from 'next/navigation';
 import { useState} from 'react';
-// Using a standard <a> tag instead of Next.js Link for compatibility.
+import { v4 as uuidv4 } from 'uuid';
+
 
 /**
  * Login Component
@@ -151,8 +152,8 @@ const handleSubmit = async (e) => {
     let currentSessionId = sessionStorage.getItem("browser_session_id");
     // 2. If no ID exists, create a new one
     if (!currentSessionId) {
-      // Use crypto.randomUUID() for a cryptographically strong, unique ID
-      currentSessionId = crypto.randomUUID();
+      // Use the robust generateUUID function instead of crypto.randomUUID()
+      currentSessionId = uuidv4();
       // Store the new ID in sessionStorage
       sessionStorage.setItem("browser_session_id", currentSessionId);
     }
