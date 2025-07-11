@@ -17,7 +17,7 @@ COPY . .
 
 # Build the application for production
 # The static files will be generated in the /app/build directory
-RUN npm run build
+RUN yarn run build
 
 # Expose port 8080 to Cloud Run
 EXPOSE 8080

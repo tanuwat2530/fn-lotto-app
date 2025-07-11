@@ -22,7 +22,7 @@ const Signin = () => {
     const [password, setPassword] = useState('');
     // A ref to hold the canvas element for the three.js renderer.
     const canvasRef = useRef(null);
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    const apiUrl = process.env.BFF_API_URL;
 
     // useEffect hook to set up and run the three.js animation.
     // The empty dependency array [] ensures this runs only once when the component mounts.
