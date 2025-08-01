@@ -1,11 +1,24 @@
 "use client";
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import { QrCode, Banknote, ClipboardCheck, X } from 'lucide-react';
 import { Home, User, CheckCircle } from "lucide-react";
 
 
 // The main App component that renders the deposit page UI.
 export default function App() {
+const id = ""
+  useEffect(() => {
+      const currentSessionId = sessionStorage.getItem("browser_session_id");
+      const id = sessionStorage.getItem("id");
+
+        if(currentSessionId === null || id === null)
+        {
+              router.push("/signin")
+        } 
+   }, []);
+
+
+
   // State to manage the deposit amount input value.
   const [amount, setAmount] = useState('100');
   // State to manage the selected deposit channel, defaulting to 'qr'.
@@ -18,7 +31,7 @@ export default function App() {
   const [error, setError] = useState(null);
   // State to control the visibility of the popup modal.
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  
   // Handles changes to the amount input field.
   const handleAmountChange = (e) => {
     // Only allow numbers and an optional decimal point.
@@ -52,9 +65,8 @@ export default function App() {
 //     }
 //   };
 
-
-  // Asynchronous function to handle the "Proceed" button.
-  const handleProceed = async () => {
+// Asynchronous function to handle the "Proceed" button.
+const handleProceed = async () => {
     if (!amount) {
       setError('Please enter a valid amount.');
       return;
@@ -64,39 +76,57 @@ export default function App() {
     setError(null);
     setPayUrl(null);
 
-    // Simulate an API call to a mock backend endpoint.
-    // In a real app, you would replace this with your actual API endpoint.
+    // --- Start of API Call Changes ---
+
+    // 1. Define your API endpoint. Replace this with your actual URL.
+    const apiUrl = 'http://localhost:3003/bff-lotto-app/gateway/payin'; 
+    const id = sessionStorage.getItem("id");
+
     try {
-      // A mock fetch response to simulate a successful API call.
-      const mockResponse = {
-        code: 0,
-        data: {
-          order_no: '12025073038d6600767af4785a64abf4c380b9af9',
-          payUrl: 'https://pay.ghpay.vip/#/pay?order=12025073038d6600767af4785a64abf4c380b9af9',
+      // 2. Make the API call using fetch.
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      };
+        // 3. Send the amount and channel in the request body.
+        body: JSON.stringify({ 
+            amount: amount, 
+            channel: channel,
+            member_id:id,
+            noti_url:"https://google.co.th",
+            payment_type:"1059",
+            fee_type:"0"
+        }),
+      });
+      
+      // Check if the network response was ok
+      if (!response.ok) {
+        throw new Error(`Network response was not ok: ${response.statusText}`);
+      }
 
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      const result = mockResponse;
-      console.log('Mock API Response:', result);
+      // 4. Parse the JSON response from the API.
+      const result = await response.json();
+      console.log('API Response:', result);
 
       if (result.code === 0 && result.data && result.data.payUrl) {
         setPayUrl(result.data.payUrl);
         setIsModalOpen(true); // Open the modal on success
       } else {
-        setError('Failed to get a payment URL. Please try again.');
+        // If the API returns a success code but no URL, or a different error code
+        setError(result.message || 'Failed to get a payment URL. Please try again.');
       }
 
     } catch (e) {
+      // Catch any network errors or issues with JSON parsing
       setError(`An error occurred: ${e.message}`);
-      console.error('JSON parsing failed:', e);
+      console.error('API call failed:', e);
     } finally {
       setIsLoading(false);
     }
+    // --- End of API Call Changes ---
   };
-
+  
   return (
     <div className="w-full min-h-screen bg-gray-900 text-white flex flex-col">
 
@@ -134,7 +164,7 @@ export default function App() {
               </label>
               <div className="relative">
                 <input
-                  type="text"
+                  type="number"
                   id="amount"
                   value={amount}
                   onChange={handleAmountChange}
@@ -145,7 +175,7 @@ export default function App() {
             </div>
 
             {/* Channel selection section */}
-            <div className="mb-8">
+            <div className="mb-6">
               <h2 className="block font-medium text-xl font-bold text-white mb-2">ช่องทางการชำระเงิน</h2>
               <div className="grid grid-cols-2 gap-4">
 
