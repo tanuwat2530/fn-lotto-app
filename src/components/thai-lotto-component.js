@@ -141,11 +141,35 @@ const BetHistory = ({ bets }) => {
     }, 2000);
   };
 
+  const transferMenu =() =>{
+   
+    router.push("/transfer")
+  }
   return (
-    
-      
-      <div className="w-full  min-h-[800px] bg-gray-900 text-white rounded-2xl shadow-2xl flex flex-col p-1 relative overflow-hidden">
-        
+      <div className="w-full bg-gray-900 text-white shadow-2xl flex flex-col p-1 relative overflow-hidden">
+        {/* header menu */}
+         <br/>
+         <div className="mt-auto pt-4">
+          <div className="flex justify-around items-center text-xs text-gray-400">
+            <button className='flex flex-col items-center gap-1 hover:text-white'>
+              <Home size={20} />
+              หน้าหลัก
+            </button>
+            <button className='flex flex-col items-center gap-1 hover:text-white'>
+              <CheckCircle size={20} />
+              ตรวจรางวัล
+            </button>
+            <button className='flex flex-col items-center gap-1 hover:text-white'>
+              <User size={20}
+               onClick={() => transferMenu()}/>
+              ฝาก - ถอน
+            </button>
+          </div>
+        </div>
+        <br/>
+        <br/>
+       
+       
         {/* Scrollable Main Content Area */}
         <main className="flex-grow flex flex-col overflow-y-auto">
           {/* Bet Type Selector */}
@@ -238,23 +262,7 @@ const BetHistory = ({ bets }) => {
           </div>
         </main>
 
-        <footer className="mt-auto pt-4">
-          {/* Footer Navigation */}
-          <div className="flex justify-around items-center text-xs text-gray-400">
-            <button className='flex flex-col items-center gap-1 hover:text-white'>
-              <Home size={20} />
-              หน้าหลัก
-            </button>
-            <button className='flex flex-col items-center gap-1 hover:text-white'>
-              <CheckCircle size={20} />
-              ตรวจรางวัล
-            </button>
-            <button className='flex flex-col items-center gap-1 hover:text-white'>
-              <User size={20} />
-              ฝาก - ถอน
-            </button>
-          </div>
-        </footer>
+      
         
         {/* Success Modal */}
         {showSuccessModal && (

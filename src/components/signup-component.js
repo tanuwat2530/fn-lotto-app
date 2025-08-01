@@ -99,7 +99,7 @@ const SignUp = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [identity, setIdentity] = useState(''); // Corresponds to the email/identity field
-    const apiUrl = process.env.BFF_API_URL;
+    const apiUrl = process.env.NEXT_PUBLIC_BFF_API_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent default form submission behavior
