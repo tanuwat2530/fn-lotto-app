@@ -132,7 +132,7 @@ export default function App() {
                 transfer_name: accountName,
                 transfer_phone: phoneNumber,
                 member_id: id, // Assuming member_id is also needed for withdrawal
-                chanel: "1", //0 = QR , 1 = BANK TRANSFER 
+                channel: "1", //0 = QR , 1 = BANK TRANSFER 
                 noti_url:"https://google.co.th",
 	              fee_type:"0",
 	              payment_type:"2001"
