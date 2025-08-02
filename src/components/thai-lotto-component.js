@@ -142,7 +142,6 @@ const BetHistory = ({ bets }) => {
   };
 
   const transferMenu =() =>{
-   
     router.push("/transfer")
   }
   return (
