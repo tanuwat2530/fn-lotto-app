@@ -150,17 +150,16 @@ const BetHistory = ({ bets }) => {
          <br/>
          <div className="mt-auto pt-4">
           <div className="flex justify-around items-center text-xs text-gray-400">
-            <button className='flex flex-col items-center gap-1 hover:text-white'>
+            <button  onClick={() => router.push("/thai-lotto")} className='flex flex-col items-center gap-1 hover:text-white'>
               <Home size={20} />
-              หน้าหลัก
+              หวยไทย
             </button>
             <button className='flex flex-col items-center gap-1 hover:text-white'>
               <CheckCircle size={20} />
               ตรวจรางวัล
             </button>
-            <button className='flex flex-col items-center gap-1 hover:text-white'>
-              <User size={20}
-               onClick={() => transferMenu()}/>
+            <button onClick={() => router.push("/transfer")} className='flex flex-col items-center gap-1 hover:text-white'>
+              <User size={20}/>
               ฝาก - ถอน
             </button>
           </div>

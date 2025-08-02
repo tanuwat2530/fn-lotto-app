@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { QrCode, Banknote, ClipboardCheck, X, DollarSign, University, UserPlus, Phone } from 'lucide-react';
 import { Home, User, CheckCircle } from "lucide-react";
 
+import { useRouter } from "next/navigation";
+
 // The main App component that renders the deposit and withdraw page UI.
 export default function App() {
-
+ const router = useRouter();
   const apiUrl = process.env.NEXT_PUBLIC_BFF_API_URL;
   
   // Commenting out for local testing if router is not configured
@@ -170,18 +172,18 @@ export default function App() {
       <br/>
       <div className="mt-auto pt-4">
         <div className="flex justify-around items-center text-xs text-gray-400">
-          <button className='flex flex-col items-center gap-1 hover:text-white'>
-            <Home size={20} />
-            หน้าหลัก
-          </button>
-          <button className='flex flex-col items-center gap-1 hover:text-white'>
-            <CheckCircle size={20} />
-            ตรวจรางวัล
-          </button>
-          <button className='flex flex-col items-center gap-1 text-white'>
-            <User size={20} />
-            ฝาก - ถอน
-          </button>
+              <button  onClick={() => router.push("/thai-lotto")} className='flex flex-col items-center gap-1 hover:text-white'>
+                <Home size={20} />
+                หวยไทย
+              </button>
+              <button className='flex flex-col items-center gap-1 hover:text-white'>
+                <CheckCircle size={20} />
+                ตรวจรางวัล
+              </button>
+              <button onClick={() => router.push("/transfer")} className='flex flex-col items-center gap-1 hover:text-white'>
+                <User size={20}/>
+                ฝาก - ถอน
+              </button>
         </div>
       </div>
        
@@ -296,7 +298,7 @@ export default function App() {
                 {/* Phone Number */}
                  <div className="relative">
                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400"><Phone size={20}/></span>
-                   <input type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="เบอร์โทรศัพท์ (ถ้ามี)" className="w-full pl-10 pr-4 py-3 border border-gray-700 bg-gray-900 text-white rounded-xl focus:ring-2 focus:ring-green-500"/>
+                   <input type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="เบอร์โทรศัพท์" className="w-full pl-10 pr-4 py-3 border border-gray-700 bg-gray-900 text-white rounded-xl focus:ring-2 focus:ring-green-500"/>
                  </div>
               </div>
             )}
