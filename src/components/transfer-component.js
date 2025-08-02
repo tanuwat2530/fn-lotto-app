@@ -87,7 +87,7 @@ const handleProceed = async () => {
 
     try {
       // 2. Make the API call using fetch.
-      const response = await fetch(`${apiUrl}/bff-lotto-app/gateway/payin`, {
+      const response = await fetch(`${apiUrl}/bff-lotto-app/payin`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
