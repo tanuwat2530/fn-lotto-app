@@ -8,15 +8,17 @@ import { Home, User, Settings, Bell, ChevronFirst, ChevronLast, ChevronLeft, Che
 	
 const ThaiLotto = () =>{
 
-      const router = useRouter();
+  const apiUrl = process.env.NEXT_PUBLIC_BFF_API_URL;
+  const router = useRouter();
        // --- Configuration ---
   const ICONS = [
-    { name: "3 ตัวบน", icon: Home, digits: 3 },
-    { name: "3 ตัวล่าง", icon: User, digits: 3 },
-    { name: "2 ตัวบน", icon: Settings, digits: 2 },
-    { name: "2 ตัวล่าง", icon: Bell, digits: 2 },
+    { bet_id: "TH31" , name: "3 ตัวบน", icon: Home, digits: 3 },
+    { bet_id: "TH32" ,  name: "3 ตัวล่าง", icon: User, digits: 3 },
+    { bet_id: "TH21" , name: "2 ตัวบน", icon: Settings, digits: 2 },
+    { bet_id: "TH32" ,  name: "2 ตัวล่าง", icon: Bell, digits: 2 },
   ];
 
+  const REWARD_DATE = "งวด 30 กรกฏาคม 2568"
   const REWARD_RATIOS = [500, 400, 300, 200];
 
   // --- State Management ---
@@ -35,38 +37,68 @@ const ThaiLotto = () =>{
   const totalReward = payCredit * REWARD_RATIOS[selectedTypeIndex];
 
     
-  useEffect(() => {
+useEffect(() => {
+      const fetchCredit = async () => {
       const currentSessionId = sessionStorage.getItem("browser_session_id");
-      const id = sessionStorage.getItem("id");
-      const usename = sessionStorage.getItem("usename");
+      const account_id = sessionStorage.getItem("id");
+      const username = sessionStorage.getItem("usename"); // fix typo?
       const bank_account_number = sessionStorage.getItem("bank_account_number");
       const bank_account_owner = sessionStorage.getItem("bank_account_owner");
       const bank_provider_id = sessionStorage.getItem("bank_provider_id");
       const identity = sessionStorage.getItem("identity");
 
-        if(currentSessionId === null || id === null)
-        {
-              router.push("/signin")
-        } 
-        setCurrentCredit(0)
-        
-        
-   }, []);
+      if (currentSessionId === null || account_id === null) {
+        router.push("/signin");
+        return;
+      }
+
+      try {
+        const response = await fetch(`${apiUrl}/bff-lotto-app/credit`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ member_id: account_id }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const responseJson = await response.json();
+        // console.log("Credit response:", responseJson);
+        // console.log("Credit Balance :", responseJson.message.credit_balance);
+
+        // Assuming responseJson.credit exists
+        setCurrentCredit(responseJson.message.credit_balance || 0);
+
+      } catch (err) {
+        console.error("Check credit balance failed:", err);
+        setCurrentCredit(0); // fallback
+      }
+    };
+
+    fetchCredit();
+  }, []);
+
 // --- Bet Item Component (Adapted from MyLottoOrder) ---
 // This component displays a single past bet in the history list.
 const BetItem = ({ bet }) => {
-  const { type, numbers, amount, icon: Icon } = bet;
+  
+  const { bet_type , bet_time,bet_prize ,bet_description, bet_number, bet_amount,  icon: Icon } = bet;
   return (
-    <div className="bg-gray-800 p-3 rounded-lg flex items-center gap-4">
+    <div className="bg-gray-800 p-2 rounded-lg flex items-center gap-4">
       <div className="bg-purple-600 p-2 rounded-lg">
         <Icon size={24} />
       </div>
-      <div className="flex-grow">
-        <h3 className="font-bold">{type} - <span className="text-cyan-400">{numbers}</span></h3>
-        <p className="text-sm text-gray-400">
-          เดิมพัน: {amount} เครดิต
-        </p>
-      </div>
+        <p className="font-bold"> {REWARD_DATE}</p> /
+        <h3 className="font-bold">{bet_description} : <span className="text-cyan-400">{bet_number}</span></h3> /
+        <p className="font-bold">เดิมพัน : {bet_amount} , รางวัล : <span className="text-cyan-400">{bet_prize}</span> </p>
+        <button className='flex flex-col items-center gap-1 hover:text-white'>
+             <span className="text-green-400"> ตรวจรางวัล</span>   
+              {/* <CheckCircle size={24} /> */}
+             
+            </button>
     </div>
   );
 };
@@ -74,6 +106,7 @@ const BetItem = ({ bet }) => {
 // --- Bet History Component (Adapted from Playlist) ---
 // This component displays the list of all past bets.
 const BetHistory = ({ bets }) => {
+  console.log(...bets)
   if (bets.length === 0) {
     return (
         <div className="text-center py-8 text-gray-500">
@@ -91,8 +124,6 @@ const BetHistory = ({ bets }) => {
     </div>
   );
 };
-
- 
 
   // --- Event Handlers ---
   const handleTypeSelect = (index) => {
@@ -124,10 +155,13 @@ const BetHistory = ({ bets }) => {
     
     // Create a new bet object to add to the history
     const newBet = {
-        id: `${Date.now()}-${betNumbers}`, // Create a unique ID for the key prop
-        type: selectedType.name,
-        numbers: betNumbers,
-        amount: payCredit,
+        id:`${Date.now()}`, // Create a unique ID for the key prop
+        bet_time: `${Date.now()}`,
+        bet_type: "TH31",
+        bet_description: selectedType.name,
+        bet_number: betNumbers,
+        bet_amount: payCredit,
+        bet_prize: totalReward.toLocaleString(),
         icon: selectedType.icon
     };
     // Add the new bet to the beginning of the history array
@@ -141,22 +175,16 @@ const BetHistory = ({ bets }) => {
     }, 2000);
   };
 
-  const transferMenu =() =>{
-    router.push("/transfer")
-  }
+  
   return (
-      <div className="w-full bg-gray-900 text-white shadow-2xl flex flex-col p-1 relative overflow-hidden">
+       <div className="w-full min-h-screen bg-gray-900 text-white flex flex-col">
         {/* header menu */}
-         <br/>
+       
          <div className="mt-auto pt-4">
           <div className="flex justify-around items-center text-xs text-gray-400">
             <button  onClick={() => router.push("/thai-lotto")} className='flex flex-col items-center gap-1 hover:text-white'>
               <Home size={20} />
               หวยไทย
-            </button>
-            <button className='flex flex-col items-center gap-1 hover:text-white'>
-              <CheckCircle size={20} />
-              ตรวจรางวัล
             </button>
             <button onClick={() => router.push("/transfer")} className='flex flex-col items-center gap-1 hover:text-white'>
               <User size={20}/>
@@ -165,7 +193,7 @@ const BetHistory = ({ bets }) => {
           </div>
         </div>
         <br/>
-        <br/>
+
        
        
         {/* Scrollable Main Content Area */}
@@ -189,7 +217,7 @@ const BetHistory = ({ bets }) => {
 
           {/* Date and Number Inputs */}
           <div className="text-center mb-4">
-            <h4 className="text-sm text-gray-400">งวด 30 กรกฏาคม 2568</h4>
+            <h3 className="text-lg font-semibold text-gray-300">{REWARD_DATE}</h3>
           </div>
           <div className="flex justify-center items-center gap-3 mb-4">
             <input
@@ -250,7 +278,7 @@ const BetHistory = ({ bets }) => {
               disabled={payCredit <= 0}
             >
               <div className="font-semibold">ใช้ {payCredit} เครดิต</div>
-              <div className="text-sm text-purple-200">ยอดเงินที่จะได้รับ: {totalReward.toLocaleString()}</div>
+              <div className="text-sm text-purple-200">ยอดเงินที่จะได้รับ : {totalReward.toLocaleString()}</div>
             </button>
           </div>
           {/* Bet History Section */}

@@ -169,17 +169,17 @@ export default function App() {
     <div className="w-full min-h-screen bg-gray-900 text-white flex flex-col">
 
       {/* header menu */}
-      <br/>
+      
       <div className="mt-auto pt-4">
         <div className="flex justify-around items-center text-xs text-gray-400">
               <button  onClick={() => router.push("/thai-lotto")} className='flex flex-col items-center gap-1 hover:text-white'>
                 <Home size={20} />
                 หวยไทย
               </button>
-              <button className='flex flex-col items-center gap-1 hover:text-white'>
+              {/* <button className='flex flex-col items-center gap-1 hover:text-white'>
                 <CheckCircle size={20} />
                 ตรวจรางวัล
-              </button>
+              </button> */}
               <button onClick={() => router.push("/transfer")} className='flex flex-col items-center gap-1 hover:text-white'>
                 <User size={20}/>
                 ฝาก - ถอน
@@ -272,12 +272,11 @@ export default function App() {
                         <option value="KTB">ธนาคารกรุงไทย (KTB)</option>
                         <option value="BAY">ธนาคารกรุงศรีอยุธยา (BAY)</option>
                         <option value="TMBThanachart">ธนาคารธนาชาติ (TMB)</option>
-                        <option value="Krungsri">ธนาคารกรุงศรี (TMB)</option>
                         <option value="CIMB">ธนาคารซีไอเอ็มบี (CIMB)</option>
                         <option value="GSB">ธนาคารออมสิน (GSB)</option>
                         <option value="KKP">ธนาคารเกียรตินาคิน (KKP)</option> 
                         <option value="BAAC">ธนาคาร ธกส (BAAC)</option>  
-                        <option value="ibank">ธนาคารอิสบาม (ibank)</option>  
+                        <option value="ibank">ธนาคารอิสลาม (ibank)</option>  
        
        
        
