@@ -12,10 +12,10 @@ const ThaiLotto = () =>{
   const router = useRouter();
        // --- Configuration ---
   const ICONS = [
-    { bet_id: "TH31" , name: "3 ตัวบน", icon: Home, digits: 3 },
-    { bet_id: "TH32" ,  name: "3 ตัวล่าง", icon: User, digits: 3 },
-    { bet_id: "TH21" , name: "2 ตัวบน", icon: Settings, digits: 2 },
-    { bet_id: "TH32" ,  name: "2 ตัวล่าง", icon: Bell, digits: 2 },
+    { bet_type: "TH31" , name: "3 ตัวบน", icon: Home, digits: 3 },
+    { bet_type: "TH32" ,  name: "3 ตัวล่าง", icon: User, digits: 3 },
+    { bet_type: "TH21" , name: "2 ตัวบน", icon: Settings, digits: 2 },
+    { bet_type: "TH32" ,  name: "2 ตัวล่าง", icon: Bell, digits: 2 },
   ];
 
   const REWARD_DATE = "งวด 30 กรกฏาคม 2568"
@@ -85,17 +85,17 @@ useEffect(() => {
 // This component displays a single past bet in the history list.
 const BetItem = ({ bet }) => {
   
-  const { bet_type , bet_time,bet_prize ,bet_description, bet_number, bet_amount,  icon: Icon } = bet;
+  const {member , bet_type , bet_time,bet_prize ,bet_description, bet_number, bet_amount,  icon: Icon } = bet;
   return (
     <div className="bg-gray-800 p-2 rounded-lg flex items-center gap-4">
-      <div className="bg-purple-600 p-2 rounded-lg">
+      {/* <div className="bg-purple-600 p-2 rounded-lg">
         <Icon size={24} />
-      </div>
+      </div> */}
         <p className="font-bold"> {REWARD_DATE}</p> /
         <h3 className="font-bold">{bet_description} : <span className="text-cyan-400">{bet_number}</span></h3> /
         <p className="font-bold">เดิมพัน : {bet_amount} , รางวัล : <span className="text-cyan-400">{bet_prize}</span> </p>
         <button className='flex flex-col items-center gap-1 hover:text-white'>
-             <span className="text-green-400"> ตรวจรางวัล</span>   
+             <span className="text-green-400"> รับเงินรางวัล</span>   
               {/* <CheckCircle size={24} /> */}
              
             </button>
@@ -106,7 +106,7 @@ const BetItem = ({ bet }) => {
 // --- Bet History Component (Adapted from Playlist) ---
 // This component displays the list of all past bets.
 const BetHistory = ({ bets }) => {
-  console.log(...bets)
+  
   if (bets.length === 0) {
     return (
         <div className="text-center py-8 text-gray-500">
@@ -148,22 +148,50 @@ const BetHistory = ({ bets }) => {
     setter(value);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    
     if (payCredit <= 0) return;
 
     const betNumbers = isTwoDigitMode ? `${digit2}${digit3}` : `${digit1}${digit2}${digit3}`;
-    
+    if(betNumbers == "") return;
     // Create a new bet object to add to the history
     const newBet = {
         id:`${Date.now()}`, // Create a unique ID for the key prop
+        bet_date: REWARD_DATE,
         bet_time: `${Date.now()}`,
-        bet_type: "TH31",
+        bet_type: selectedType.bet_type,
         bet_description: selectedType.name,
-        bet_number: betNumbers,
-        bet_amount: payCredit,
+        bet_number: betNumbers.toString(),
+        bet_amount: payCredit.toString(),
+        current_amount: (currentCredit - payCredit).toString(),
         bet_prize: totalReward.toLocaleString(),
+        member: sessionStorage.getItem("id"),
         icon: selectedType.icon
     };
+    console.log(newBet)
+
+    try{
+    const response =  await fetch(`${apiUrl}/bff-lotto-app/bet`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newBet),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response}`);
+        }
+
+        const responseJson = await response.json();
+         console.log("Response:", responseJson);
+
+
+      } catch (err) {
+        console.error("Bet failed:", err);
+       
+      }
+        
     // Add the new bet to the beginning of the history array
     setBets(prevBets => [newBet, ...prevBets]);
 
