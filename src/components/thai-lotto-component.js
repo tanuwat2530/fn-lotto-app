@@ -51,7 +51,6 @@ useEffect(() => {
         router.push("/signin");
         return;
       }
-
       try {
         const response = await fetch(`${apiUrl}/bff-lotto-app/credit`, {
           method: "POST",
@@ -64,41 +63,65 @@ useEffect(() => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-
         const responseJson = await response.json();
         // console.log("Credit response:", responseJson);
         // console.log("Credit Balance :", responseJson.message.credit_balance);
-
         // Assuming responseJson.credit exists
         setCurrentCredit(responseJson.message.credit_balance || 0);
+
+
+const history = await fetch(`${apiUrl}/bff-lotto-app/history`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ member_id: account_id }),
+        });
+ if (!history.ok) {
+          throw new Error(`HTTP error! status: ${history.status}`);
+        }
+        const resJson = await history.json();
+       const parsedData = JSON.parse(resJson.message);
+
+        setBets(parsedData);
+
+
 
       } catch (err) {
         console.error("Check credit balance failed:", err);
         setCurrentCredit(0); // fallback
       }
     };
-
     fetchCredit();
   }, []);
 
 // --- Bet Item Component (Adapted from MyLottoOrder) ---
 // This component displays a single past bet in the history list.
 const BetItem = ({ bet }) => {
-  
   const {member , bet_type , bet_time,bet_prize ,bet_description, bet_number, bet_amount,  icon: Icon } = bet;
   return (
-    <div className="bg-gray-800 p-2 rounded-lg flex items-center gap-4">
-      {/* <div className="bg-purple-600 p-2 rounded-lg">
-        <Icon size={24} />
-      </div> */}
-        <p className="font-bold"> {REWARD_DATE}</p> /
-        <h3 className="font-bold">{bet_description} : <span className="text-cyan-400">{bet_number}</span></h3> /
-        <p className="font-bold">เดิมพัน : {bet_amount} , รางวัล : <span className="text-cyan-400">{bet_prize}</span> </p>
-        <button className='flex flex-col items-center gap-1 hover:text-white'>
-             <span className="text-green-400"> รับเงินรางวัล</span>   
-              {/* <CheckCircle size={24} /> */}
-             
-            </button>
+       <div className="space-y-2">
+      {bets.map((bet, index) => (
+        <div
+          key={index}
+          className="bg-gray-800 p-2 rounded-lg flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4"
+        >
+          <p className="font-bold">{bet.bet_date}</p> /
+          <h3 className="font-bold">
+            {bet.bet_description} :{" "}
+            <span className="text-cyan-400">{bet.bet_number}</span>
+          </h3>{" "}
+          /
+          <p className="font-bold">
+            เดิมพัน : {bet.bet_amount} , รางวัล :{" "}
+            <span className="text-cyan-400">{bet.bet_prize}</span>
+          </p>
+          <button className="flex flex-col items-center gap-1 hover:text-white">
+            <span className="text-green-400">รับเงินรางวัล</span>
+            {/* <CheckCircle size={24} /> */}
+          </button>
+        </div>
+      ))}
     </div>
   );
 };
@@ -106,7 +129,7 @@ const BetItem = ({ bet }) => {
 // --- Bet History Component (Adapted from Playlist) ---
 // This component displays the list of all past bets.
 const BetHistory = ({ bets }) => {
-  
+    
   if (bets.length === 0) {
     return (
         <div className="text-center py-8 text-gray-500">
@@ -149,7 +172,6 @@ const BetHistory = ({ bets }) => {
   };
 
   const handleSubmit = async () => {
-    
     if (payCredit <= 0) return;
 
     const betNumbers = isTwoDigitMode ? `${digit2}${digit3}` : `${digit1}${digit2}${digit3}`;
@@ -168,8 +190,7 @@ const BetHistory = ({ bets }) => {
         member: sessionStorage.getItem("id"),
         icon: selectedType.icon
     };
-    console.log(newBet)
-
+   
     try{
     const response =  await fetch(`${apiUrl}/bff-lotto-app/bet`, {
           method: "POST",
@@ -178,28 +199,25 @@ const BetHistory = ({ bets }) => {
           },
           body: JSON.stringify(newBet),
         });
-
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response}`);
         }
-
         const responseJson = await response.json();
-         console.log("Response:", responseJson);
-
-
+        console.log("Response:", responseJson);
       } catch (err) {
         console.error("Bet failed:", err);
        
       }
         
     // Add the new bet to the beginning of the history array
-    setBets(prevBets => [newBet, ...prevBets]);
+   // setBets(prevBets => [newBet, ...prevBets]);
 
     setShowSuccessModal(true);
     setCurrentCredit(prev => prev - payCredit);
     setTimeout(() => {
       setShowSuccessModal(false);
       handleTypeSelect(selectedTypeIndex); // Reset the form
+      window.location.reload();
     }, 2000);
   };
 
@@ -312,7 +330,36 @@ const BetHistory = ({ bets }) => {
           {/* Bet History Section */}
           <div className="mb-4">
             <center><h4 className="text-lg font-bold text-gray-300 mb-1">ประวัติการเดิมพัน</h4></center>
-            <BetHistory bets={bets} />
+               <div className="space-y-2">
+      {bets && bets.length > 0 ? (
+  bets.map((bet, index) => (
+    <div
+      key={index}
+      className="bg-gray-800 p-2 rounded-lg flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4"
+    >
+      <p className="font-bold">{bet.bet_date}</p> /
+      <h3 className="font-bold">
+        {bet.bet_description} :{" "}
+        <span className="text-cyan-400">{bet.bet_number}</span>
+      </h3>{" "}
+      /
+      <p className="font-bold">
+        เดิมพัน : {bet.bet_amount} , รางวัล :{" "}
+        <span className="text-cyan-400">{bet.bet_prize}</span>
+      </p>
+      <button className="flex flex-col items-center gap-1 hover:text-white">
+        <span className="text-green-400">รับเงินรางวัล</span>
+      </button>
+    </div>
+  ))
+) : (
+  <div className="text-center py-8 text-gray-500">
+            <Receipt size={48} className="mx-auto mb-2"/>
+            ยังไม่มีประวัติการเดิมพัน
+        </div>
+)}
+
+    </div>
           </div>
         </main>
 
