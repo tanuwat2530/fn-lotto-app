@@ -83,7 +83,7 @@ export default function App() {
             channel: depositChannel,
             member_id: id,
             noti_url: "https://google.co.th",
-            payment_type: "2001", // amount >= 60 
+            payment_type: "1001", // amount >= 60 
             fee_type: "0"
         }),
       });
