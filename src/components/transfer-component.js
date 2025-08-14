@@ -110,9 +110,12 @@ const handleDisposit = (channel) =>{
 
       const result = await response.json();
       console.log('API Deposit Response:', result);
+    const jsonData = JSON.parse(result);
+    console.log(jsonData.data.order_no); // → 120250814204c5eb6ac5b4deead3f21f2ee04995e
+    console.log(jsonData.data.payUrl);   // → https://pay.ghpay.vip/#/pay?order=...
 
-      if (result.code === 0 && result.data && result.data.payUrl) {
-        setPayUrl(result.data.payUrl);
+      if (jsonData.code === 0 && jsonData.data && jsonData.data.payUrl) {
+        setPayUrl(jsonData.data.payUrl);
         setIsModalOpen(true);
       } else {
         setError(result.message || 'Failed to get a payment URL. Please try again.');
