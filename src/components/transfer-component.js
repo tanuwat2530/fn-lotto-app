@@ -7,7 +7,8 @@ import { useRouter } from "next/navigation";
 // The main App component that renders the deposit and withdraw page UI.
 export default function App() {
  const router = useRouter();
-  const apiUrl = process.env.NEXT_PUBLIC_BFF_API_URL;
+ const apiUrl = process.env.NEXT_PUBLIC_BFF_API_URL;
+ const notiURL = process.env.NEXT_PUBLIC_NOTI_URL;
   
   // Commenting out for local testing if router is not configured
   // useEffect(() => {
@@ -26,11 +27,13 @@ export default function App() {
   const [mode, setMode] = useState('deposit'); // 'deposit' or 'withdraw'
   const [amount, setAmount] = useState('100');
   const [paymentType, setPaymentType] = useState('1002');
+  const [paymentWithdrawType, setPaymentWithdrawType] = useState('2002');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // --- Deposit-Specific State ---
   const [depositChannel, setDepositChannel] = useState('0'); // 0 = QR Code, 1 = Bank Transfer
+  const [withdrawChannel, setWithdrawChannel] = useState('0'); // 0 = QR Code, 1 = Bank Transfer
   const [payUrl, setPayUrl] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
@@ -59,6 +62,23 @@ const handleDisposit = (channel) =>{
   }
 }
 
+const handleWithdraw = (channel) =>{
+  if(channel === '0')
+  {
+    //alert("QR")
+    setWithdrawChannel('0')
+    setAmount('100')
+    setPaymentWithdrawType('2002')
+  }
+  else
+  {
+    //alert("BANK")
+    setWithdrawChannel('1')
+    setAmount('300')
+    setPaymentWithdrawType('2006')
+  }
+}
+
   // Handles switching between Deposit and Withdraw modes
   const handleModeChange = (newMode) => {
     setMode(newMode);
@@ -72,7 +92,6 @@ const handleDisposit = (channel) =>{
   };
 
   const handleAmountChange = (e) => {
-
     const re = /^[0-9]*\.?[0-9]*$/;
     if (e.target.value === '' || re.test(e.target.value)) {
       setAmount(e.target.value);
@@ -100,7 +119,7 @@ const handleDisposit = (channel) =>{
             amount: amount, 
             channel: depositChannel,
             member_id: id,
-            noti_url: "https://noti_url.com",
+            noti_url: `${notiURL}`,
             payment_type: paymentType,
             fee_type: "0"
         }),
@@ -109,11 +128,12 @@ const handleDisposit = (channel) =>{
       if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
 
       const result = await response.json();
-      console.log('API Deposit Response:', result);
-    const jsonData = JSON.parse(result);
-    console.log(jsonData.data.order_no); // → 120250814204c5eb6ac5b4deead3f21f2ee04995e
-    console.log(jsonData.data.payUrl);   // → https://pay.ghpay.vip/#/pay?order=...
-
+      const jsonData = JSON.parse(result);
+    
+    //console.log('API Deposit Response:', result);
+    // console.log(jsonData.data.order_no); // → 120250814204c5eb6ac5b4deead3f21f2ee04995e
+    // console.log(jsonData.data.payUrl);   // → https://pay.ghpay.vip/#/pay?order=...
+   
       if (jsonData.code === 0 && jsonData.data && jsonData.data.payUrl) {
         setPayUrl(jsonData.data.payUrl);
         setIsModalOpen(true);
@@ -136,13 +156,11 @@ const handleDisposit = (channel) =>{
         setError('กรุณากรอกข้อมูลให้ครบ');
         return;
     }
-
     setIsLoading(true);
     setError(null);
     setShowSuccess(false);
 
     const id = sessionStorage.getItem("id");
-
     try {
         // NOTE: Replace with your actual withdrawal API endpoint
         const response = await fetch(`${apiUrl}/bff-lotto-app/payout`, {
@@ -155,10 +173,10 @@ const handleDisposit = (channel) =>{
                 transfer_name: accountName,
                 transfer_phone: phoneNumber,
                 member_id: id, // Assuming member_id is also needed for withdrawal
-                channel: "1", //0 = QR , 1 = BANK TRANSFER 
-                noti_url:"https://google.co.th",
+                channel: withdrawChannel, //0 = QR , 1 = BANK TRANSFER 
+                noti_url: `${notiURL}`,
 	              fee_type:"0",
-	              payment_type:"2001"
+	              payment_type:paymentWithdrawType
             }),
         });
 
@@ -168,6 +186,9 @@ const handleDisposit = (channel) =>{
         console.log('API Withdraw Response:', result);
 
         if (result.code === 0) {
+
+
+
             setShowSuccess(true);
             // Optionally reset the form on success
             setAmount('');
@@ -280,6 +301,27 @@ const handleDisposit = (channel) =>{
             {/* --- WITHDRAW FORM --- */}
             {mode === 'withdraw' && (
               <div className="space-y-4">
+               <div className="grid grid-cols-2 gap-4">
+                <button
+                    onClick={() => handleWithdraw('0')}
+                    className={`flex flex-col items-center p-4 rounded-xl border-2 transition-all duration-300 ${
+                      withdrawChannel === '0' ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-700 border-gray-600 hover:bg-gray-600'
+                    }`}
+                  >
+                    <QrCode className="w-8 h-8 mb-2" />
+                    <span className="text-sm font-semibold">คิวอาร์โค้ด</span>
+                  </button>
+                  <button
+                    onClick={() => handleWithdraw('1')}
+                    className={`flex flex-col items-center p-4 rounded-xl border-2 transition-all duration-300 ${
+                      withdrawChannel === '1' ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-700 border-gray-600 hover:bg-gray-600'
+                    }`}
+                  >
+                    <Banknote className="w-8 h-8 mb-2" />
+                    <span className="text-sm font-semibold">โอน</span>
+                  </button>
+                  
+                </div>
                 {/* Bank Provider */}
                  <div className="relative">
                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400"><University size={20}/></span>
@@ -299,10 +341,6 @@ const handleDisposit = (channel) =>{
                         <option value="KKP">ธนาคารเกียรตินาคิน (KKP)</option> 
                         <option value="BAAC">ธนาคาร ธกส (BAAC)</option>  
                         <option value="ibank">ธนาคารอิสลาม (ibank)</option>  
-       
-       
-       
-       
                         {/* Add other banks as needed */}
                     </select>
                  </div>
