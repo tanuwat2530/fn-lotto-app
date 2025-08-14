@@ -25,11 +25,12 @@ export default function App() {
   // --- Core State ---
   const [mode, setMode] = useState('deposit'); // 'deposit' or 'withdraw'
   const [amount, setAmount] = useState('100');
+  const [paymentType, setPaymentType] = useState('1002');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // --- Deposit-Specific State ---
-  const [depositChannel, setDepositChannel] = useState('1'); // 0 = QR Code, 1 = Bank Transfer
+  const [depositChannel, setDepositChannel] = useState('0'); // 0 = QR Code, 1 = Bank Transfer
   const [payUrl, setPayUrl] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
@@ -40,7 +41,23 @@ export default function App() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [showSuccess, setShowSuccess] = useState(false); // For withdrawal success message
 
-  // --- Handlers ---
+
+const handleDisposit = (channel) =>{
+  if(channel === '0')
+  {
+    //alert("QR")
+    setDepositChannel('0')
+    setAmount('100')
+    setPaymentType('1002')
+  }
+  else
+  {
+    //alert("BANK")
+    setDepositChannel('1')
+    setAmount('300')
+    setPaymentType('1006')
+  }
+}
 
   // Handles switching between Deposit and Withdraw modes
   const handleModeChange = (newMode) => {
@@ -48,13 +65,14 @@ export default function App() {
     // Reset state to avoid carrying over data between modes
     setError(null);
     setShowSuccess(false);
-    setAmount('100');
+    //setAmount('100');
     setAccountNumber('');
     setAccountName('');
     setPhoneNumber('');
   };
 
   const handleAmountChange = (e) => {
+
     const re = /^[0-9]*\.?[0-9]*$/;
     if (e.target.value === '' || re.test(e.target.value)) {
       setAmount(e.target.value);
@@ -71,9 +89,9 @@ export default function App() {
     setIsLoading(true);
     setError(null);
     setPayUrl(null);
+
     
     const id = sessionStorage.getItem("id");
-
     try {
       const response = await fetch(`${apiUrl}/bff-lotto-app/payin`, {
         method: 'POST',
@@ -82,8 +100,8 @@ export default function App() {
             amount: amount, 
             channel: depositChannel,
             member_id: id,
-            noti_url: "https://google.co.th",
-            payment_type: "1001", // amount >= 60 
+            noti_url: "https://noti_url.com",
+            payment_type: paymentType,
             fee_type: "0"
         }),
       });
@@ -233,17 +251,8 @@ export default function App() {
               <div>
                 <h2 className="block font-medium text-xl font-bold text-white mb-2">ช่องทางการชำระเงิน</h2>
                 <div className="grid grid-cols-2 gap-4">
-                  <button
-                    onClick={() => setDepositChannel('1')}
-                    className={`flex flex-col items-center p-4 rounded-xl border-2 transition-all duration-300 ${
-                      depositChannel === '1' ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-700 border-gray-600 hover:bg-gray-600'
-                    }`}
-                  >
-                    <Banknote className="w-8 h-8 mb-2" />
-                    <span className="text-sm font-semibold">โอน</span>
-                  </button>
-                  <button
-                    onClick={() => setDepositChannel('0')}
+                <button
+                    onClick={() => handleDisposit('0')}
                     className={`flex flex-col items-center p-4 rounded-xl border-2 transition-all duration-300 ${
                       depositChannel === '0' ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-700 border-gray-600 hover:bg-gray-600'
                     }`}
@@ -251,6 +260,16 @@ export default function App() {
                     <QrCode className="w-8 h-8 mb-2" />
                     <span className="text-sm font-semibold">คิวอาร์โค้ด</span>
                   </button>
+                  <button
+                    onClick={() => handleDisposit('1')}
+                    className={`flex flex-col items-center p-4 rounded-xl border-2 transition-all duration-300 ${
+                      depositChannel === '1' ? 'bg-blue-600 border-blue-500 text-white' : 'bg-gray-700 border-gray-600 hover:bg-gray-600'
+                    }`}
+                  >
+                    <Banknote className="w-8 h-8 mb-2" />
+                    <span className="text-sm font-semibold">โอน</span>
+                  </button>
+                  
                 </div>
               </div>
             )}
