@@ -9,6 +9,7 @@ export default function App() {
  const router = useRouter();
  const apiUrl = process.env.NEXT_PUBLIC_BFF_API_URL;
  const notiURL = process.env.NEXT_PUBLIC_NOTI_URL;
+ //console.log("NOTI URL : "+notiURL)
   
   // Commenting out for local testing if router is not configured
   // useEffect(() => {
@@ -119,7 +120,7 @@ const handleWithdraw = (channel) =>{
             amount: amount, 
             channel: depositChannel,
             member_id: id,
-            noti_url: `${notiURL}`,
+            noti_url: notiURL,
             payment_type: paymentType,
             fee_type: "0"
         }),
@@ -174,7 +175,7 @@ const handleWithdraw = (channel) =>{
                 transfer_phone: phoneNumber,
                 member_id: id, // Assuming member_id is also needed for withdrawal
                 channel: withdrawChannel, //0 = QR , 1 = BANK TRANSFER 
-                noti_url: `${notiURL}`,
+                noti_url: notiURL,
 	              fee_type:"0",
 	              payment_type:paymentWithdrawType
             }),
