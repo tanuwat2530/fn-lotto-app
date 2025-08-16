@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { QrCode, Banknote, ClipboardCheck, X, DollarSign, University, UserPlus, Phone } from 'lucide-react';
 import { Home, User, CheckCircle } from "lucide-react";
 
@@ -9,20 +9,49 @@ export default function App() {
  const router = useRouter();
  const apiUrl = process.env.NEXT_PUBLIC_BFF_API_URL;
  const notiURL = process.env.NEXT_PUBLIC_NOTI_URL;
- //console.log("NOTI URL : "+notiURL)
-  
-  // Commenting out for local testing if router is not configured
-  // useEffect(() => {
-  //     const currentSessionId = sessionStorage.getItem("browser_session_id");
-  //     const id = sessionStorage.getItem("id");
-  //       if(currentSessionId === null || id === null)
-  //       {
-  //             // Assuming you are using Next.js router
-  //             // import { useRouter } from 'next/router'
-  //             // const router = useRouter();
-  //             // router.push("/signin")
-  //       } 
-  //  }, []);
+ const [currentCredit, setCurrentCredit] = useState(0);
+ 
+ // --- Get Current Credit ---
+ useEffect(() => {
+       const fetchCredit = async () => {
+       const currentSessionId = sessionStorage.getItem("browser_session_id");
+       const account_id = sessionStorage.getItem("id");
+       const username = sessionStorage.getItem("usename"); // fix typo?
+       const bank_account_number = sessionStorage.getItem("bank_account_number");
+       const bank_account_owner = sessionStorage.getItem("bank_account_owner");
+       const bank_provider_id = sessionStorage.getItem("bank_provider_id");
+       const identity = sessionStorage.getItem("identity");
+ 
+       if (currentSessionId === null || account_id === null) {
+         router.push("/signin");
+         return;
+       }
+       try {
+         const response = await fetch(`${apiUrl}/bff-lotto-app/credit`, {
+           method: "POST",
+           headers: {
+             "Content-Type": "application/json",
+           },
+           body: JSON.stringify({ member_id: account_id }),
+         });
+ 
+         if (!response.ok) {
+           throw new Error(`HTTP error! status: ${response.status}`);
+         }
+         const responseJson = await response.json();
+         // console.log("Credit response:", responseJson);
+         // console.log("Credit Balance :", responseJson.message.credit_balance);
+         // Assuming responseJson.credit exists
+         setCurrentCredit(responseJson.message.credit_balance || 0); 
+ 
+       } catch (err) {
+         console.error("Check credit balance failed:", err);
+         setCurrentCredit(0); // fallback
+       }
+     };
+     fetchCredit();
+   }, []);
+
 
   // --- Core State ---
   const [mode, setMode] = useState('deposit'); // 'deposit' or 'withdraw'
@@ -53,6 +82,7 @@ const handleDisposit = (channel) =>{
     setDepositChannel('0')
     setAmount('100')
     setPaymentType('1002')
+    setError(null)
   }
   else
   {
@@ -60,6 +90,7 @@ const handleDisposit = (channel) =>{
     setDepositChannel('1')
     setAmount('300')
     setPaymentType('1006')
+     setError(null)
   }
 }
 
@@ -68,15 +99,17 @@ const handleWithdraw = (channel) =>{
   {
     //alert("QR")
     setWithdrawChannel('0')
-    setAmount('100')
+    setAmount(currentCredit)
     setPaymentWithdrawType('2002')
+    setError(null)
   }
   else
   {
     //alert("BANK")
     setWithdrawChannel('1')
-    setAmount('300')
+    setAmount(currentCredit)
     setPaymentWithdrawType('2006')
+    setError(null)
   }
 }
 
@@ -90,6 +123,7 @@ const handleWithdraw = (channel) =>{
     setAccountNumber('');
     setAccountName('');
     setPhoneNumber('');
+    setAmount(currentCredit)
   };
 
   const handleAmountChange = (e) => {
@@ -101,10 +135,22 @@ const handleWithdraw = (channel) =>{
 
   // Handles the "Proceed" button for deposits
   const handleProceedDeposit = async () => {
-    if (!amount || parseFloat(amount) <= 0) {
-      setError('Please enter a valid amount.');
+    if(depositChannel ==='0')
+    {
+    if (!amount || parseFloat(amount) < 100) {
+      setAmount('100');
+      setError('ฝากขั้นต่ำ 100 บาท');
       return;
     }
+   }
+    if(depositChannel ==='1')
+   {
+    if (!amount || parseFloat(amount) < 300) {
+       setAmount('300');
+      setError('ฝากขั้นต่ำ 300 บาท');
+      return;
+    }
+   }
 
     setIsLoading(true);
     setError(null);
@@ -152,11 +198,31 @@ const handleWithdraw = (channel) =>{
 
   // Handles the "Proceed" button for withdrawals
   const handleProceedWithdraw = async () => {
+
     // Validation
     if (!amount || parseFloat(amount) <= 0 || !bankProvider || !accountNumber || !accountName) {
         setError('กรุณากรอกข้อมูลให้ครบ');
         return;
     }
+
+    if (parseFloat(amount) < 100 && withdrawChannel === '0') {
+        setError('ถอนขั้นต่ำ 100 บาท');
+        setAmount('100')
+        return;
+    }
+
+     if (parseFloat(amount) < 300 && withdrawChannel === '1') {
+        setError('ถอนขั้นต่ำ 300 บาท');
+         setAmount('300')
+        return;
+    }
+
+         if (parseFloat(amount) > currentCredit) {
+        setError('ไม่สามารถถอนเกิน : '+currentCredit+' บาท');
+         setAmount(currentCredit)
+        return;
+    }
+
     setIsLoading(true);
     setError(null);
     setShowSuccess(false);
