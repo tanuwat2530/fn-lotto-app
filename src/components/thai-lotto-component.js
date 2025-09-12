@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 
 import { useRouter } from 'next/navigation';
 import { Home, User, Settings, Bell, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, CheckCircle, Receipt } from "lucide-react";
-
+import QRCode from 'react-qr-code';
 
 
 	
@@ -22,6 +22,7 @@ const ThaiLotto = () =>{
   const REWARD_RATIOS = [500, 400, 300, 200];
 
   // --- State Management ---
+  const [configTransfer, setconfigTransfer] = useState(1); //0 = GATEWAY , 1 = PROMT PAY
   const [currentCredit, setCurrentCredit] = useState(0);
   const [selectedTypeIndex, setSelectedTypeIndex] = useState(0);
   const [digit1, setDigit1] = useState("");
@@ -232,10 +233,28 @@ const BetHistory = ({ bets }) => {
               <Home size={20} />
               หวยไทย
             </button>
-            <button onClick={() => router.push("/transfer")} className='flex flex-col items-center gap-1 hover:text-white'>
-              <User size={20}/>
-              ฝาก - ถอน
-            </button>
+
+            {configTransfer === 0 ? (
+        // Renders when currentTransfer is 0
+        <button
+          onClick={() => router.push("/transfer")}
+          className='flex flex-col items-center gap-1 hover:text-white'
+        >
+          <User size={20} />
+          ฝาก - ถอน (GATEWAY)
+        </button>
+      ) : (
+        // Renders when currentTransfer is 1
+        <button
+          onClick={() => router.push("/promtpay")}
+          className='flex flex-col items-center gap-1 hover:text-white'
+        >
+          <User size={20} />
+          ฝาก - ถอน (QR PROMT PAY)
+        </button>
+      )}
+
+            
           </div>
         </div>
         <br/>

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { QrCode, Banknote, ClipboardCheck, X, DollarSign, University, UserPlus, Phone } from 'lucide-react';
-import { Home, User, CheckCircle } from "lucide-react";
-
+import {  ClipboardCheck, X, University, UserPlus, Phone } from 'lucide-react';
+import { Home, User } from "lucide-react";
 import { useRouter } from "next/navigation";
+
 
 // The main App component that renders the deposit and withdraw page UI.
 export default function App() {
@@ -10,6 +10,7 @@ export default function App() {
  const apiUrl = process.env.NEXT_PUBLIC_BFF_API_URL;
  const notiURL = process.env.NEXT_PUBLIC_NOTI_URL;
  const [currentCredit, setCurrentCredit] = useState(0);
+ const [qrDepositImg, setQrDespositImg] = useState(null);
  
  // --- Get Current Credit ---
  useEffect(() => {
@@ -52,19 +53,18 @@ export default function App() {
      fetchCredit();
    }, []);
 
-
   // --- Core State ---
   const [mode, setMode] = useState('deposit'); // 'deposit' or 'withdraw'
   const [amount, setAmount] = useState('100');
-  const [paymentType, setPaymentType] = useState('1002');
-  const [paymentWithdrawType, setPaymentWithdrawType] = useState('2002');
+  //const [paymentType, setPaymentType] = useState('1002');
+  //const [paymentWithdrawType, setPaymentWithdrawType] = useState('2002');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // --- Deposit-Specific State ---
   const [depositChannel, setDepositChannel] = useState('0'); // 0 = QR Code, 1 = Bank Transfer
   const [withdrawChannel, setWithdrawChannel] = useState('0'); // 0 = QR Code, 1 = Bank Transfer
-  const [payUrl, setPayUrl] = useState(null);
+  //const [payUrl, setPayUrl] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   // --- Withdraw-Specific State ---
@@ -75,51 +75,54 @@ export default function App() {
   const [showSuccess, setShowSuccess] = useState(false); // For withdrawal success message
 
 
-const handleDisposit = (channel) =>{
-  if(channel === '0')
-  {
-    //alert("QR")
-    setDepositChannel('0')
-    setAmount('100')
-    setPaymentType('1002')
-    setError(null)
-  }
-  else
-  {
-    //alert("BANK")
-    setDepositChannel('1')
-    setAmount('300')
-    setPaymentType('1006')
-     setError(null)
-  }
-}
+// const handleDisposit = (channel) =>{
+//   if(channel === '0')
+//   {
+//     //alert("QR")
+//     setDepositChannel('0')
+//     setAmount('100')
+//     setPaymentType('1002')
+//     setError(null)
+//   }
+//   else
+//   {
+//     //alert("BANK")
+//     setDepositChannel('1')
+//     setAmount('300')
+//     setPaymentType('1006')
+//      setError(null)
+//   }
+// }
 
-const handleWithdraw = (channel) =>{
-  if(channel === '0')
-  {
-    //alert("QR")
-    setWithdrawChannel('0')
-    setAmount(currentCredit)
-    setPaymentWithdrawType('2002')
-    setError(null)
-  }
-  else
-  {
-    //alert("BANK")
-    setWithdrawChannel('1')
-    setAmount(currentCredit)
-    setPaymentWithdrawType('2006')
-    setError(null)
-  }
-}
+// const handleWithdraw = (channel) =>{
+//   if(channel === '0')
+//   {
+//     //alert("QR")
+//     setWithdrawChannel('0')
+//     setAmount(currentCredit)
+//     setPaymentWithdrawType('2002')
+//     setError(null)
+//   }
+//   else
+//   {
+//     //alert("BANK")
+//     setWithdrawChannel('1')
+//     setAmount(currentCredit)
+//     setPaymentWithdrawType('2006')
+//     setError(null)
+//   }
+// }
 
   // Handles switching between Deposit and Withdraw modes
+  
+
+
   const handleModeChange = (newMode) => {
     setMode(newMode);
     // Reset state to avoid carrying over data between modes
     setError(null);
     setShowSuccess(false);
-    //setAmount('100');
+    setAmount('100');
     setAccountNumber('');
     setAccountName('');
     setPhoneNumber('');
@@ -154,46 +157,41 @@ const handleWithdraw = (channel) =>{
 
     setIsLoading(true);
     setError(null);
-    setPayUrl(null);
+    //setPayUrl(null);
 
     
     const id = sessionStorage.getItem("id");
     try {
-      const response = await fetch(`${apiUrl}/bff-lotto-app/payin`, {
+      const response = await fetch(`${apiUrl}/bff-lotto-app/promtpay`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-            amount: amount, 
-            channel: depositChannel,
+            amount: parseFloat(amount), 
             member_id: id,
-            noti_url: notiURL,
-            payment_type: paymentType,
-            fee_type: "0"
         }),
       });
-      
+     
       if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
 
-      const result = await response.json();
-      const jsonData = JSON.parse(result);
-    
-    //console.log('API Deposit Response:', result);
-    // console.log(jsonData.data.order_no); // → 120250814204c5eb6ac5b4deead3f21f2ee04995e
-    // console.log(jsonData.data.payUrl);   // → https://pay.ghpay.vip/#/pay?order=...
+    const result = await response.json();
    
-      if (jsonData.code === 0 && jsonData.data && jsonData.data.payUrl) {
-        setPayUrl(jsonData.data.payUrl);
+       if (result) {
+         //setPayUrl(jsonData.data.payUrl);
+        setQrDespositImg(result.qr_img_name)
+         // Use setTimeout to delay the modal opening by 5 seconds (5000 milliseconds).
+    setTimeout(() => {
         setIsModalOpen(true);
-      } else {
-        setError(result.message || 'Failed to get a payment URL. Please try again.');
-      }
-
+    }, 1500); // 5000 milliseconds = 5 seconds
+       } else {
+          setError(result.message || 'Failed to get a payment URL. Please try again.');
+       }
     } catch (e) {
       setError(`An error occurred: ${e.message}`);
       console.error('API call failed:', e);
     } finally {
       setIsLoading(false);
     }
+    
   };
 
   // Handles the "Proceed" button for withdrawals
@@ -205,17 +203,17 @@ const handleWithdraw = (channel) =>{
         return;
     }
 
-    if (parseFloat(amount) < 100 && withdrawChannel === '0') {
-        setError('ถอนขั้นต่ำ 100 บาท');
-        setAmount('100')
-        return;
-    }
+    // if (parseFloat(amount) < 100 && withdrawChannel === '0') {
+    //     setError('ถอนขั้นต่ำ 100 บาท');
+    //     setAmount('100')
+    //     return;
+    // }
 
-     if (parseFloat(amount) < 300 && withdrawChannel === '1') {
-        setError('ถอนขั้นต่ำ 300 บาท');
-         setAmount('300')
-        return;
-    }
+    //  if (parseFloat(amount) < 300 && withdrawChannel === '1') {
+    //     setError('ถอนขั้นต่ำ 300 บาท');
+    //      setAmount('300')
+    //     return;
+    // }
 
          if (parseFloat(amount) > currentCredit) {
         setError('ไม่สามารถถอนเกิน : '+currentCredit+' บาท');
@@ -273,12 +271,68 @@ const handleWithdraw = (channel) =>{
         setIsLoading(false);
     }
   };
+
+
+const handleDownloadQR = async () => {
+    const qrImageElement = document.querySelector('img[alt="QR Code"]');
+    if (!qrImageElement) return;
+
+    try {
+        // Fetch the image to ensure it's loaded and to get its blob data
+        const response = await fetch(qrImageElement.src);
+        const blob = await response.blob();
+        
+        // Create an Image object to load the fetched blob
+        const img = new Image();
+        img.src = URL.createObjectURL(blob);
+
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Set canvas dimensions to match the QR code image
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            // 1. Draw the QR code image onto the canvas
+            ctx.drawImage(img, 0, 0, img.width, img.height);
+
+            // 2. Add the watermark text
+            const watermarkText = "หวยพระนคร";
+            ctx.font = 'bold 30px Arial'; // Adjust font size and style as needed
+            ctx.fillStyle = 'rgba(3, 230, 255, 1)'; // Red, semi-transparent
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // Calculate position for the watermark (center of the image)
+            const x = canvas.width / 2;
+            const y = canvas.height / 2;
+
+            ctx.fillText(watermarkText, x, y);
+
+            // Get the PNG data URL from the canvas
+            const pngUrl = canvas.toDataURL('image/png');
+
+            // Create a temporary link to trigger the download
+            const link = document.createElement('a');
+            link.href = pngUrl;
+            link.download = 'QR_Payment_HuayPranakorn.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Clean up the temporary URL
+            URL.revokeObjectURL(img.src); 
+        };
+    } catch (error) {
+        console.error('Failed to download or watermark the QR code image:', error);
+    }
+};
   
   return (
+  
     <div className="w-full min-h-screen bg-gray-900 text-white flex flex-col">
-
       {/* header menu */}
-      
       <div className="mt-auto pt-4">
         <div className="flex justify-around items-center text-xs text-gray-400">
               <button  onClick={() => router.push("/thai-lotto")} className='flex flex-col items-center gap-1 hover:text-white'>
@@ -289,9 +343,9 @@ const handleWithdraw = (channel) =>{
                 <CheckCircle size={20} />
                 ตรวจรางวัล
               </button> */}
-              <button onClick={() => router.push("/transfer")} className='flex flex-col items-center gap-1 hover:text-white'>
+              <button onClick={() => router.push("/promtpay")} className='flex flex-col items-center gap-1 hover:text-white'>
                 <User size={20}/>
-                ฝาก - ถอน (GATEWAY)
+                ฝาก - ถอน (QR PROMT PAY)
               </button>
         </div>
       </div>
@@ -338,7 +392,7 @@ const handleWithdraw = (channel) =>{
             </div>
 
             {/* --- DEPOSIT FORM --- */}
-            {mode === 'deposit' && (
+            {/* {mode === 'deposit' && (
               <div>
                 <h2 className="block font-medium text-xl font-bold text-white mb-2">ช่องทางการชำระเงิน</h2>
                 <div className="grid grid-cols-2 gap-4">
@@ -363,12 +417,12 @@ const handleWithdraw = (channel) =>{
                   
                 </div>
               </div>
-            )}
+            )} */}
             
             {/* --- WITHDRAW FORM --- */}
             {mode === 'withdraw' && (
               <div className="space-y-4">
-               <div className="grid grid-cols-2 gap-4">
+               {/* <div className="grid grid-cols-2 gap-4">
                 <button
                     onClick={() => handleWithdraw('0')}
                     className={`flex flex-col items-center p-4 rounded-xl border-2 transition-all duration-300 ${
@@ -388,7 +442,7 @@ const handleWithdraw = (channel) =>{
                     <span className="text-sm font-semibold">โอน</span>
                   </button>
                   
-                </div>
+                </div> */}
                 {/* Bank Provider */}
                  <div className="relative">
                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400"><University size={20}/></span>
@@ -451,19 +505,33 @@ const handleWithdraw = (channel) =>{
         </div>
       </div>
       
-      {/* Deposit Popup Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-gray-800 text-white rounded-2xl shadow-xl w-full max-w-sm p-6 relative overflow-hidden h-[90vh] flex flex-col">
-            <div className="flex-shrink-0 flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">ดำเนินการต่อเพื่อชำระเงิน</h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white transition-colors">
+   
+
+{isModalOpen && (
+<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="bg-gray-800 text-white rounded-2xl shadow-xl w-full max-w-sm p-6 relative overflow-hidden h-[54vh] flex flex-col">
+        <div className="flex-shrink-0 flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">กรุณาฝากเงินภายใน 3 นาที</h2>
+            <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white transition-colors">
                 <X size={24} />
-              </button>
-            </div>
-            <iframe src={payUrl} className="flex-grow w-full border-none rounded-xl" title="Payment Webview"></iframe>
-          </div>
+            </button>
         </div>
+        <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'white', padding: '10px' }}>
+            <img 
+                src={`/qr-images/${qrDepositImg}`}
+                alt="QR Code" 
+            />
+        </div>
+        <div className="mt-4 flex justify-center">
+            <button
+                onClick={handleDownloadQR}
+                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition-colors"
+            >
+                Save QR Code
+            </button>
+        </div>
+    </div>
+</div>
       )}
     </div>
   );
