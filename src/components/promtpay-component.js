@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import {  ClipboardCheck, X, University, UserPlus, Phone } from 'lucide-react';
 import { Home, User } from "lucide-react";
 import { useRouter } from "next/navigation";
-import axios from 'axios';
-
 
 // The main App component that renders the deposit and withdraw page UI.
 export default function App() {
@@ -11,7 +9,7 @@ export default function App() {
  const apiUrl = process.env.NEXT_PUBLIC_BFF_API_URL;
  const notiURL = process.env.NEXT_PUBLIC_NOTI_URL;
  const [currentCredit, setCurrentCredit] = useState(0);
- const [qrDepositImg, setQrDespositImg] = useState(null);
+ //const [qrDepositImg, setQrDespositImg] = useState(null);
  
  // --- Get Current Credit ---
  useEffect(() => {
@@ -75,7 +73,9 @@ export default function App() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [showSuccess, setShowSuccess] = useState(false); // For withdrawal success message
 
-
+    // New state for the cooldown deposit logic
+  const [isCooldown, setIsCooldown] = useState(false);
+  const [cooldownRemaining, setCooldownRemaining] = useState(0); // in seconds
 // const handleDisposit = (channel) =>{
 //   if(channel === '0')
 //   {
@@ -116,8 +116,6 @@ export default function App() {
 
   // Handles switching between Deposit and Withdraw modes
   
-
-
   const handleModeChange = (newMode) => {
     setMode(newMode);
     // Reset state to avoid carrying over data between modes
@@ -139,6 +137,15 @@ export default function App() {
 
   // Handles the "Proceed" button for deposits
   const handleProceedDeposit = async () => {
+  // ---- 1. Check if the function is on cooldown and return early if so ----
+
+   let expireQr = sessionStorage.getItem("qr_request_time");
+   
+    if (Date.now()  < expireQr) {
+      setError('กรุณาฝากเงิน จากรายการนี้');
+      return;
+    }
+
     if(depositChannel ==='0')
     {
     if (!amount || parseFloat(amount) < 100) {
@@ -150,11 +157,35 @@ export default function App() {
     if(depositChannel ==='1')
    {
     if (!amount || parseFloat(amount) < 300) {
-       setAmount('300');
+      setAmount('300');
       setError('ฝากขั้นต่ำ 300 บาท');
       return;
     }
    }
+
+    //    // Set cooldown to true and start the timer
+    // setIsCooldown(true);
+    // setCooldownRemaining(180); // 3 minutes = 180 seconds
+
+    // // Set a timer to reset the cooldown after 3 minutes
+    // const cooldownTimer = setTimeout(() => {
+    //     setIsCooldown(false);
+    //     setCooldownRemaining(0);
+    //     setError(null); // Clear the error message
+    // }, 3 * 60 * 1000); // 3 minutes in milliseconds
+
+    // Use a separate interval to update the countdown display
+    // const countdownInterval = setInterval(() => {
+    //     setCooldownRemaining(prev => {
+    //         if (prev > 0) {
+    //             return prev - 1;
+    //         } else {
+    //             clearInterval(countdownInterval);
+    //             return 0;
+    //         }
+    //     });
+    // }, 1000);
+
     setIsLoading(true);
     setError(null);
     //setPayUrl(null);
@@ -169,39 +200,68 @@ export default function App() {
             member_id: id,
         }),
       });
-     
-      if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+      if (!response.ok) 
+        {
 
-    const result = await response.json();
-   
-       if (result) {
-         //setPayUrl(jsonData.data.payUrl);
-        setQrDespositImg(result.qr_img_name)
+           // Clear the cooldown timer if the network request fails
+        // clearTimeout(cooldownTimer);
+        // clearInterval(countdownInterval);
+        // setIsCooldown(false);
+        // setCooldownRemaining(0);
+          throw new Error(`Network response was not ok: ${response.statusText}`);
+        }
+
+    const promtpayResult = await response.json();
+
+       if (promtpayResult) {
+          //setQrDespositImg(promtpayResult.qr_img_name)
          // Use setTimeout to delay the modal opening by 5 seconds (5000 milliseconds).
-    setTimeout(() => {
-        setIsModalOpen(true);
-    }, 1500); // 5000 milliseconds = 5 seconds
+          setTimeout(() => {
+              setIsModalOpen(true);
+          }, 1000); // 5000 milliseconds = 5 seconds
+
+         
+
+     // --- Call the Telegram API after the payment URL is successfully received ---
+        const telegramResponse = await fetch(`${apiUrl}/bff-lotto-app/telegram`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                amount: parseFloat(amount), 
+                member_id: id,
+                transaction_id: promtpayResult.qr_img_name,
+            }),
+        });
+        //console.log("Telegram API status:", telegramResponse.status);
+        if (telegramResponse.status !== 200) {
+            alert("ไม่สามารถแจ้งเตือนการฝากได้ ติดต่อ admin");
+        }
+         //save qr image name to sessionStorage for delete after 3 min
+          sessionStorage.setItem("qr_image",promtpayResult.qr_img_name);
+          //set disable deposit after 3 min 
+          const threeMinutesInMilliseconds = 3 * 60 * 1000;
+          const expirationTimestamp = Date.now() + threeMinutesInMilliseconds;
+          sessionStorage.setItem("qr_request_time",expirationTimestamp);
+
        } else {
-          setError(result.message || 'Failed to get a payment URL. Please try again.');
+          setError(promtpayResult.message || 'Failed to get a payment URL. Please try again.');
+          // Clear the cooldown timer on API-level failure
+        // clearTimeout(cooldownTimer);
+        // clearInterval(countdownInterval);
+        // setIsCooldown(false);
+        // setCooldownRemaining(0);
        }
     } catch (e) {
       setError(`An error occurred: ${e.message}`);
-      console.error('API call failed:', e);
+      //console.error('API call failed:', e);
+             // Clear the cooldown timer on error
+      // clearTimeout(cooldownTimer);
+      // clearInterval(countdownInterval);
+      // setIsCooldown(false);
+      // setCooldownRemaining(0);
     } finally {
       setIsLoading(false);
-      console.log("Finally : send noti to Telegram")
-      // Fixed API details from the cURL command
-    const response = await fetch(`${apiUrl}/bff-lotto-app/telegram`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            amount: parseFloat(amount), 
-            member_id: id,
-        }),
-      });
-      console.log(response.status)
-      if (response.status != 200) alert("ไม่สามารถแจ้งเตือนการฝากได้ ติดต่อ admin");
-   
+      
    
   }
   };
@@ -260,12 +320,9 @@ export default function App() {
         if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
 
         const result = await response.json();
-        console.log('API Withdraw Response:', result);
+        //console.log('API Withdraw Response:', result);
 
         if (result.code === 0) {
-
-
-
             setShowSuccess(true);
             // Optionally reset the form on success
             setAmount('');
@@ -278,7 +335,7 @@ export default function App() {
 
     } catch (e) {
         setError(`An error occurred: ${e.message}`);
-        console.error('API call failed:', e);
+       // console.error('API call failed:', e);
     } finally {
         setIsLoading(false);
     }
@@ -497,7 +554,7 @@ const handleDownloadQR = async () => {
             
             {/* --- Universal Messages & Button --- */}
             {isLoading && <div className="text-center text-blue-400 font-bold my-4">กำลังดำเนินการ...</div>}
-            {error && <div className="bg-red-500 text-white p-3 rounded-xl my-4 text-center">{error}</div>}
+            {error && <div onClick={() => setIsModalOpen(true)}  className="bg-red-500 text-center w-full py-3 rounded-xl text-lg font-semibold transition-all duration-300 mt-6">{error}</div>}
             {showSuccess && <div className="bg-green-500 text-white p-3 rounded-xl my-4 text-center">ดำเนินการถอนเงินสำเร็จ!</div>}
             
             <button
@@ -529,12 +586,12 @@ const handleDownloadQR = async () => {
             </button>
         </div>
         <center>
-         <h4 className="text-m font-bold">กรุณาฝากเงินภายใน 3 นาที</h4>
+         <h4  className="text-m font-bold">กรุณาฝากเงินภายใน 3 นาที</h4>
           <h4 className="text-m font-bold">ท่านจะได้รับเครดิตทันที</h4>
           </center>
         <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'white', padding: '10px' }}>
             <img 
-                src={`/qr-images/${qrDepositImg}`}
+                src={`/qr-images/${sessionStorage.getItem("qr_image")}`}
                 alt="QR Code" 
             />
         </div>
