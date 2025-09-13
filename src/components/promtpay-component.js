@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import {  ClipboardCheck, X, University, UserPlus, Phone } from 'lucide-react';
 import { Home, User } from "lucide-react";
 import { useRouter } from "next/navigation";
+import axios from 'axios';
 
 
 // The main App component that renders the deposit and withdraw page UI.
@@ -154,12 +155,10 @@ export default function App() {
       return;
     }
    }
-
     setIsLoading(true);
     setError(null);
     //setPayUrl(null);
 
-    
     const id = sessionStorage.getItem("id");
     try {
       const response = await fetch(`${apiUrl}/bff-lotto-app/promtpay`, {
@@ -190,8 +189,21 @@ export default function App() {
       console.error('API call failed:', e);
     } finally {
       setIsLoading(false);
-    }
-    
+      console.log("Finally : send noti to Telegram")
+      // Fixed API details from the cURL command
+    const response = await fetch(`${apiUrl}/bff-lotto-app/telegram`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            amount: parseFloat(amount), 
+            member_id: id,
+        }),
+      });
+      console.log(response.status)
+      if (response.status != 200) alert("ไม่สามารถแจ้งเตือนการฝากได้ ติดต่อ admin");
+   
+   
+  }
   };
 
   // Handles the "Proceed" button for withdrawals
@@ -509,13 +521,17 @@ const handleDownloadQR = async () => {
 
 {isModalOpen && (
 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-    <div className="bg-gray-800 text-white rounded-2xl shadow-xl w-full max-w-sm p-6 relative overflow-hidden h-[54vh] flex flex-col">
+    <div className="bg-gray-800 text-white rounded-2xl shadow-xl w-full max-w-sm p-6 relative overflow-hidden h-[60vh] flex flex-col">
         <div className="flex-shrink-0 flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">กรุณาฝากเงินภายใน 3 นาที</h2>
+           
             <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white transition-colors">
                 <X size={24} />
             </button>
         </div>
+        <center>
+         <h4 className="text-m font-bold">กรุณาฝากเงินภายใน 3 นาที</h4>
+          <h4 className="text-m font-bold">ท่านจะได้รับเครดิตทันที</h4>
+          </center>
         <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'white', padding: '10px' }}>
             <img 
                 src={`/qr-images/${qrDepositImg}`}
