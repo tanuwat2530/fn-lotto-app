@@ -214,6 +214,7 @@ export default function App() {
     const promtpayResult = await response.json();
 
        if (promtpayResult) {
+       
           //setQrDespositImg(promtpayResult.qr_img_name)
          // Use setTimeout to delay the modal opening by 5 seconds (5000 milliseconds).
           setTimeout(() => {
@@ -229,7 +230,10 @@ export default function App() {
             body: JSON.stringify({ 
                 amount: parseFloat(amount), 
                 member_id: id,
-                transaction_id: promtpayResult.qr_img_name,
+                qr_image: promtpayResult.qr_img_name,
+                promtpay_id: promtpayResult.qr_id,
+                promtpay_name: promtpayResult.qr_name,
+                bank_provider:promtpayResult.bank_provider,
             }),
         });
         //console.log("Telegram API status:", telegramResponse.status);
