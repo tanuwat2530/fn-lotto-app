@@ -271,10 +271,16 @@ export default function App() {
 
   // Handles the "Proceed" button for withdrawals
   const handleProceedWithdraw = async () => {
-
+ let withdraw_time = sessionStorage.getItem("withdraw_request_time");
+   
+    if (Date.now()  < withdraw_time) {
+      alert("ไม่สามารถทำรายการจนกว่าจะครบ 15 นาที")
+      return;
+    }
     // Validation
     if (!amount || parseFloat(amount) <= 0 || !bankProvider || !accountNumber || !accountName) {
-        setError('กรุณากรอกข้อมูลให้ครบ');
+        //setError('กรุณากรอกข้อมูลให้ครบ');
+        alert("กรุณากรอกข้อมูลให้ครบ")
         return;
     }
 
@@ -291,14 +297,15 @@ export default function App() {
     // }
 
          if (parseFloat(amount) > currentCredit) {
-        setError('ไม่สามารถถอนเกิน : '+currentCredit+' บาท');
+       // setError('ไม่สามารถถอนเกิน : '+currentCredit+' บาท');
+       alert('ไม่สามารถถอนเกิน : '+currentCredit+' บาท')
          setAmount(currentCredit)
         return;
     }
 
-    setIsLoading(true);
-    setError(null);
-    setShowSuccess(false);
+    //setIsLoading(true);
+    //setError(null);
+    //setShowSuccess(false);
 
     const id = sessionStorage.getItem("id");
     try {
@@ -317,14 +324,35 @@ export default function App() {
         //console.log("Telegram API status:", withdrawResponse);
          if (withdrawResponse.status !== 200) {
              alert("ไม่สามารถแจ้งเตือนการถอนได้ ติดต่อ admin");
-           } 
+             
+           }else{
+            alert("ทาง Admin ได้รับคำขอของท่านแล้ว กรุณารอสักครู่ (สามารถทำรายการได้อีก หลังจาก 15 นาที)")
+            
+           }
     } catch (e) {
-      setError(`An error occurred: ${e.message}`);
+      alert(`An error occurred: ${e.message}`);
      
     } finally {
       
-      
-   
+      //call api update credit
+      const withdrawResponse = await fetch(`${apiUrl}/bff-lotto-app/withdraw-credit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                amount: amount, 
+                member_id: id,
+
+            }),
+        });
+        const resJson = await withdrawResponse.json();
+        if(resJson.code === '0' && resJson.message === 'success'){
+         const Milliseconds = 15 * 60 * 1000;
+          const limitTime = Date.now() + Milliseconds;
+          sessionStorage.setItem("withdraw_request_time",limitTime);
+        }
+        
+        window.location.reload()
+        
   }
 
 
@@ -583,7 +611,7 @@ const handleDownloadQR = async () => {
             )}
             
             {/* --- Universal Messages & Button --- */}
-            {isLoading && <div className="text-center text-blue-400 font-bold my-4">กำลังดำเนินการ...</div>}
+            {isLoading && <div className="text-center text-blue-400 font-bold my-4">ท่านจะไม่สามารถถอนเงินได้อีกเป็นเวลา 15 นาที</div>}
             {error && <div onClick={() => setIsModalOpen(true)}  className="bg-red-500 text-center w-full py-3 rounded-xl text-lg font-semibold transition-all duration-300 mt-6">{error}</div>}
             {showSuccess && <div className="bg-green-500 text-white p-3 rounded-xl my-4 text-center">ดำเนินการถอนเงินสำเร็จ!</div>}
             
