@@ -253,9 +253,6 @@ const handleWithdraw = (channel) =>{
         console.log('API Withdraw Response:', result);
 
         if (result.code === 0) {
-
-
-
             setShowSuccess(true);
             // Optionally reset the form on success
             setAmount('');

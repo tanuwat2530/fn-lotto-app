@@ -214,17 +214,15 @@ export default function App() {
     const promtpayResult = await response.json();
 
        if (promtpayResult) {
-       
           //setQrDespositImg(promtpayResult.qr_img_name)
          // Use setTimeout to delay the modal opening by 5 seconds (5000 milliseconds).
           setTimeout(() => {
               setIsModalOpen(true);
           }, 1000); // 5000 milliseconds = 5 seconds
 
-         
-
      // --- Call the Telegram API after the payment URL is successfully received ---
-        const telegramResponse = await fetch(`${apiUrl}/bff-lotto-app/telegram`, {
+     const rootUrl = `${window.location.protocol}//${window.location.hostname}`;
+     const telegramResponse = await fetch(`${apiUrl}/bff-lotto-app/telegram-deposit-noti`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -234,6 +232,7 @@ export default function App() {
                 promtpay_id: promtpayResult.qr_id,
                 promtpay_name: promtpayResult.qr_name,
                 bank_provider:promtpayResult.bank_provider,
+                root_url: rootUrl,
             }),
         });
         //console.log("Telegram API status:", telegramResponse.status);
@@ -303,46 +302,73 @@ export default function App() {
 
     const id = sessionStorage.getItem("id");
     try {
-        // NOTE: Replace with your actual withdrawal API endpoint
-        const response = await fetch(`${apiUrl}/bff-lotto-app/payout`, {
+    const withdrawResponse = await fetch(`${apiUrl}/bff-lotto-app/telegram-withdraw-noti`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                amount: amount, // Corrected from 'amout'
+            body: JSON.stringify({ 
+                amount: parseFloat(amount), 
+                member_id: id,
                 bank_provider: bankProvider,
                 transfer_account: accountNumber,
                 transfer_name: accountName,
                 transfer_phone: phoneNumber,
-                member_id: id, // Assuming member_id is also needed for withdrawal
-                channel: withdrawChannel, //0 = QR , 1 = BANK TRANSFER 
-                noti_url: notiURL,
-	              fee_type:"0",
-	              payment_type:paymentWithdrawType
             }),
         });
-
-        if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
-
-        const result = await response.json();
-        //console.log('API Withdraw Response:', result);
-
-        if (result.code === 0) {
-            setShowSuccess(true);
-            // Optionally reset the form on success
-            setAmount('');
-            setAccountNumber('');
-            setAccountName('');
-            setPhoneNumber('');
-        } else {
-            setError(result.message || 'Withdrawal failed. Please try again.');
-        }
-
+        //console.log("Telegram API status:", withdrawResponse);
+         if (withdrawResponse.status !== 200) {
+             alert("ไม่สามารถแจ้งเตือนการถอนได้ ติดต่อ admin");
+           } 
     } catch (e) {
-        setError(`An error occurred: ${e.message}`);
-       // console.error('API call failed:', e);
+      setError(`An error occurred: ${e.message}`);
+     
     } finally {
-        setIsLoading(false);
-    }
+      
+      
+   
+  }
+
+
+    // try {
+    //     // NOTE: Replace with your actual withdrawal API endpoint
+    //     const response = await fetch(`${apiUrl}/bff-lotto-app/payout`, {
+    //         method: 'POST',
+    //         headers: { 'Content-Type': 'application/json' },
+    //         body: JSON.stringify({
+    //             amount: amount, // Corrected from 'amout'
+    //             bank_provider: bankProvider,
+    //             transfer_account: accountNumber,
+    //             transfer_name: accountName,
+    //             transfer_phone: phoneNumber,
+    //             member_id: id, // Assuming member_id is also needed for withdrawal
+    //             channel: withdrawChannel, //0 = QR , 1 = BANK TRANSFER 
+    //             noti_url: notiURL,
+	  //             fee_type:"0",
+	  //             payment_type:paymentWithdrawType
+    //         }),
+    //     });
+
+    //     if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+
+    //     const result = await response.json();
+    //     //console.log('API Withdraw Response:', result);
+
+    //     if (result.code === 0) {
+    //         setShowSuccess(true);
+    //         // Optionally reset the form on success
+    //         setAmount('');
+    //         setAccountNumber('');
+    //         setAccountName('');
+    //         setPhoneNumber('');
+    //     } else {
+    //         setError(result.message || 'Withdrawal failed. Please try again.');
+    //     }
+
+    // } catch (e) {
+    //     setError(`An error occurred: ${e.message}`);
+    //    // console.error('API call failed:', e);
+    // } finally {
+    //     setIsLoading(false);
+    // }
   };
 
 
